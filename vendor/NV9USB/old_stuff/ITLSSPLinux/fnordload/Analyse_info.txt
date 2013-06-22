@@ -1,0 +1,38 @@
+-------------SERIAL----------------
+Serial: 16909060
+-------------UNIT DATA----------------
+UnitType: 0
+FirmwareVersion: 0328
+Country: EUR
+ValueMultiplier: 1
+ProtocolVersion: 4
+-------------Channel Data-------------
+NumChans: 4
+Channel 1: 5
+Channel 2: 10
+Channel 3: 20
+Channel 4: 50
+-------------Security Data-------------
+NumChans: 4
+Channel 1: 2
+Channel 2: 2
+Channel 3: 2
+Channel 4: 2
+-------------SETUP REQUEST----------------
+UnitType: 0
+FirmwareVersion: 0328
+Country: EUR
+ValueMultiplier: 1
+RealValueMultiplier: 0
+ProtocolVersion: 4
+NumChans: 4
+Channel 1: 5
+Channel 2: 10
+Channel 3: 20
+Channel 4: 50
+NumChans: 4
+Channel 1: 2
+Channel 2: 2
+Channel 3: 2
+Channel 4: 2
+

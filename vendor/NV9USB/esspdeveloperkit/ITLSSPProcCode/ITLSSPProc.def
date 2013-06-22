@@ -1,0 +1,16 @@
+LIBRARY ITLSSPProc
+
+EXPORTS
+	InitiateSSPHostKeys
+	CreateSSPHostEncryptionKey
+	TestSSPSlaveKeys
+	EncryptSSPPacket
+	DecryptSSPPacket
+	GetDLLVersion
+	SSPSendCommand
+	OpenSSPComPort
+	CloseSSPComPort
+	DownloadFileToTarget
+	GetRamDownloadStatus
+
+

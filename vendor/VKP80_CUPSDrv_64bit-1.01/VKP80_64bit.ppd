@@ -1,0 +1,201 @@
+*PPD-Adobe:             "4.3"
+*FormatVersion:         "4.3"
+*FileVersion:           "1.1"
+*LanguageVersion:       English
+*LanguageEncoding:      ISOLatin1
+*PCFileName:            "VKP80_64bit.ppd"
+*Manufacturer:          "Custom Engineering"
+*Product:               "(VKP80 200Dpi)"
+*1284DeviceID:          "MFG:Custom Engineering;CMD:Custom Engineering;MDL:VKP80 (STR_T-U001);CLS:PRINTER;"
+*cupsVersion:           1.1
+*cupsManualCopies:      True
+*cupsModelNumber:       200
+*cupsFilter:            "application/vnd.cups-raster 0 rastertovkp80_64bit"
+*ModelName:             "VKP80"
+*ShortNickName:         "VKP80"
+*NickName:              "VKP80"
+*PSVersion:             "(3010.000) 550"
+*LanguageLevel:         "2"
+*ColorDevice:           False
+*DefaultColorSpace:     Gray
+*FileSystem:            False
+*Throughput:            "1"
+*LandscapeOrientation:  Plus90
+*VariablePaperSize:     True
+*TTRasterizer:          Type42
+*cupsBlackDither:		"0.25 0.37"
+
+*OpenUI *PageSize/Paper Size: PickOne
+*OrderDependency: 10 AnySetup *PageSize
+*DefaultPageSize: X80MMY160MM
+
+*% 50.8mm wide page size note
+*% 50.8mm = 2.0in * 72 = 144 points
+*% use 143 points to cause 5.0 point difference with 52.5mm paper and help CUPS matching algorithm
+*% see CUPS src - gdevcups.c - search "find matching page size"
+
+
+*PageSize X80MMY80MM/80mm * 80mm:              "<</PageSize[220 226]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize X80MMY120MM/80mm * 120mm:            "<</PageSize[220 340]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize X80MMY160MM/80mm * 160mm:            "<</PageSize[220 453]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize X80MMY200MM/80mm * 200mm:            "<</PageSize[220 566]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize X80MMYRoll/80mm Roll:                "<</PageSize[220 5660]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize ZX80MMY80MM/ZOOM 80mm * 80mm:              "<</PageSize[215 226]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize ZX80MMY120MM/ZOOM 80mm * 120mm:            "<</PageSize[215 340]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize ZX80MMY160MM/ZOOM 80mm * 160mm:            "<</PageSize[215 453]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize ZX80MMY200MM/ZOOM 80mm * 200mm:            "<</PageSize[215 566]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageSize ZX80MMYRoll/ZOOM 80mm Roll:                "<</PageSize[215 5660]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+
+*CloseUI: *PageSize
+
+*OpenUI *PageRegion: PickOne
+*OrderDependency: 10 AnySetup *PageRegion
+*DefaultPageRegion: X80MMY160MM
+
+*PageRegion X80MMY80MM/80mm * 80mm:              "<</PageSize[220 226]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion X80MMY120MM/80mm * 120mm:            "<</PageSize[220 340]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion X80MMY160MM/80mm * 160mm:            "<</PageSize[220 453]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion X80MMY200MM/80mm * 200mm:            "<</PageSize[220 566]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion X80MMYRoll/80mm Roll:                "<</PageSize[220 5660]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+
+*PageRegion ZX80MMY80MM/ZOOM 80mm * 80mm:              "<</PageSize[215 226]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion ZX80MMY120MM/ZOOM 80mm * 120mm:            "<</PageSize[215 340]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion ZX80MMY160MM/ZOOM 80mm * 160mm:            "<</PageSize[215 453]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion ZX80MMY200MM/ZOOM 80mm * 200mm:            "<</PageSize[215 566]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*PageRegion ZX80MMYRoll/ZOOM 80mm Roll:                "<</PageSize[215 5660]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageRegion
+
+*DefaultImageableArea: X80MMY160MM
+
+*ImageableArea X80MMY80MM:          "0.0 0.0 220.0 226.0"
+*ImageableArea X80MMY120MM:         "0.0 0.0 220.0 340.0"
+*ImageableArea X80MMY160MM:         "0.0 0.0 220.0 453.0"
+*ImageableArea X80MMY200MM:         "0.0 0.0 220.0 566.0"
+*ImageableArea X80MMYRoll:          "0.0 0.0 220.0 5660.0"
+
+*ImageableArea ZX80MMY80MM:          "0.0 0.0 215.0 195.0"
+*ImageableArea ZX80MMY120MM:         "0.0 0.0 215.0 340.0"
+*ImageableArea ZX80MMY160MM:         "0.0 0.0 215.0 453.0"
+*ImageableArea ZX80MMY200MM:         "0.0 0.0 215.0 566.0"
+*ImageableArea ZX80MMYRoll:          "0.0 0.0 215.0 5660.0"
+
+*DefaultPaperDimension: X80MMY160MM
+
+
+
+*PaperDimension X80MMY80MM:         "220 226"
+*PaperDimension X80MMY120MM:        "220 340"
+*PaperDimension X80MMY160MM:        "220 453"
+*PaperDimension X80MMY200MM:        "220 566"
+*PaperDimension X80MMYRoll:         "220 5660"
+
+*PaperDimension ZX80MMY80MM:         "215 226"
+*PaperDimension ZX80MMY120MM:        "215 340"
+*PaperDimension ZX80MMY160MM:        "215 453"
+*PaperDimension ZX80MMY200MM:        "215 566"
+*PaperDimension ZX80MMYRoll:         "215 5660"
+
+*MaxMediaWidth:  "215"
+*MaxMediaHeight: "5670"
+*HWMargins:      0 0 0 0
+*CustomPageSize True: "pop pop pop <</PageSize[5 -2 roll]/HWResolution[199 199]/ImagingBBox null>>setpagedevice"
+*ParamCustomPageSize Width:        1 points 72 215
+*ParamCustomPageSize Height:       2 points 72 5670
+*ParamCustomPageSize WidthOffset:  3 points 0 0
+*ParamCustomPageSize HeightOffset: 4 points 0 0
+*ParamCustomPageSize Orientation:  5 int 0 0
+
+
+
+*OpenUI *HalftoningAlgorithm/Halftoning Algorithm: PickOne
+*OrderDependency: 1000 PageSetup *HalftoningAlgorithm
+*DefaultHalftoningAlgorithm: Accurate
+*HalftoningAlgorithm Accurate/Accurate: "
+      << /UseWTS false >> setuserparams
+      <<
+        /AccurateScreens true
+        /HalftoneType 1
+        /HalftoneName (Round Dot Screen)
+        /SpotFunction { 180 mul cos exch 180 mul cos add 2 div}
+        /Frequency 215
+        /Angle 50
+      >> sethalftone
+    "
+*End
+*HalftoningAlgorithm Radial/Radial: "
+      << /UseWTS false >> setuserparams
+      <<
+        /AccurateScreens true
+        /HalftoneType 1
+        /HalftoneName (Round Dot Screen)
+        /SpotFunction { 180 mul cos exch 180 mul cos add 2 div}
+        /Frequency 212
+        /Angle 27
+      >> sethalftone
+    "
+*End
+*HalftoningAlgorithm WTS/WTS: "
+      << /UseWTS true >> setuserparams
+      <<
+        /AccurateScreens true
+        /HalftoneType 1
+        /HalftoneName (Round Dot Screen)
+        /SpotFunction { 180 mul cos exch 180 mul cos add 2 div}
+        /Frequency 212
+        /Angle 120
+      >> sethalftone
+    "
+*End
+*HalftoningAlgorithm Standard/Standard: ""
+*CloseUI: *HalftoningAlgorithm
+
+*CloseGroup: Adjustment
+*OpenGroup: VKP80OTIONS/VKP80 Output Options
+
+*OpenUI *PrinterQuality/Printer Quality: PickOne
+*DefaultPrinterQuality: 1Normal
+*PrinterQuality 0HighQuality/High Quality: ""
+*PrinterQuality 1Normal/Normal: ""
+*PrinterQuality 2HighSpeed/High Speed: ""
+*CloseUI: *PrinterQuality
+
+*OpenUI *PrintDensity/Print Density: PickOne
+*DefaultPrintDensity: 4Density0
+*PrintDensity 0Density-50/-50%: ""
+*PrintDensity 1Density-37/-37%: ""
+*PrintDensity 2Density-25/-25%: ""
+*PrintDensity 3Density-12/-12%: ""
+*PrintDensity 4Density0/ 0%: ""
+*PrintDensity 5Density+12/+12%: ""
+*PrintDensity 6Density+25/+25%: ""
+*PrintDensity 7Density+37/+37%: ""
+*PrintDensity 8Density+50/+50%: ""
+*CloseUI: *PrintDensity
+
+
+
+*OpenUI *PaperPresentation/Paper Presentation: PickOne
+*DefaultPaperPresentation: 1Present80mm
+*PaperPresentation 0Present40mm/40 mm: ""
+*PaperPresentation 1Present80mm/80 mm: ""
+*PaperPresentation 2Present120mm/120 mm: ""
+*PaperPresentation 3Present160mm/160 mm: ""
+*PaperPresentation 4Present200mm/200 mm: ""
+*PaperPresentation 5Present240mm/240 mm: ""
+*PaperPresentation 6Present280mm/280 mm: ""
+*PaperPresentation 7Presentmax/max: ""
+*CloseUI: PaperPresentation
+
+
+*OpenUI *BlackMark/Black Mark Alignement: PickOne
+*DefaultBlackMark: 0Disable
+*BlackMark 0Disable/Disable: ""
+*BlackMark 1AtBeginPage/At Begin Page: ""
+*BlackMark 2AtEndPage/At End Page: ""
+*CloseUI: BlackMark
+
+
+*CloseGroup: VKP80OTIONS
+
+
+*% End

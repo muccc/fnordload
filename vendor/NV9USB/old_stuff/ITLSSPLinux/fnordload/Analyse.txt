@@ -1,0 +1,12 @@
+Start
+7F 80 1 11 65 82
+0 7f 80 1 f0 23 (Antwort)
+0x7f 0x80 0x1 0xf0 0x23 0x80
+7F	Start of Message
+80	SEQ, Bei SSP_CMD_SYNC == 80 | Adresse (?)
+ 1	Anzahl der folgenden Commands (hier: 1 Command)
+11	Command 0x11 SSP_CMD_SYNC
+(eventuelle weitere Commands)
+65	crc & 0xFF
+82	(crc >> 8) & 0xFF
+
