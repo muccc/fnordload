@@ -1,3 +1,6 @@
 [submodule "eSSP"]
 	path = eSSP
 	url = git://github.com/pc-coholic/eSSP
+[submodule "quick2wire"]
+	path = quick2wire
+	url = https://github.com/quick2wire/quick2wire-python-api.git
