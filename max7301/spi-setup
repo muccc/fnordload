@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "KERNEL==\"spidev0\.[0-9]*\", GROUP=\"spi\"" >>  /etc/udev/rules.d/10-local.rules
+groupadd spi
+usermod -a -G spi pi
