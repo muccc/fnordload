@@ -3,7 +3,8 @@
     b) cd py-spidev
     c) sudo python setup.py install
 
-2) run spi-setup as root
+2) sudo contrib/spi-setup
+3) sudo python setup.py install
 3) reboot
 4) PROFIT
 
