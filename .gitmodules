@@ -4,3 +4,6 @@
 [submodule "quick2wire"]
 	path = quick2wire
 	url = https://github.com/quick2wire/quick2wire-python-api.git
+[submodule "py-spidev"]
+	path = py-spidev
+	url = https://github.com/doceme/py-spidev.git
