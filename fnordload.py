@@ -2,16 +2,21 @@ import LCD
 import time
 import eSSP.eSSP
 import max7301
+import signal
+import sys
 
 class fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
-            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5, payoutpin = 6):
+            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5, payoutIn1 = 4,
+            payoutIn2 = 5, payoutIn3 = 6):
         self.__LCD = LCD.LCD(LCDserver)
         self.__eSSP = eSSP.eSSP.eSSP(eSSPport)
         self.__cointype = cointype
         self.__inhibits = inhibits
         self.__iodevice = max7301.MAX7301()
-        self.__payoutpin = payoutpin
+        self.__payoutIn1 = payoutIn1
+        self.__payoutIn2 = payoutIn2
+        self.__payoutIn3 = payoutIn3
         self.setup()
 
     def setup(self):
@@ -20,8 +25,11 @@ class fnordload(object):
         self.__eSSP.enable_higher_protocol()
         self.__channelvalues = self.__eSSP.channel_values()[1]
         self.set_coinlevelinhibits()
-        self.__iodevice.set_pin_as_output(self.__payoutpin)
-        self.__iodevice.set_pin(self.__payoutpin, 1)
+        self.__iodevice.set_pin_as_output(self.__payoutIn1)
+        self.__iodevice.set_pin_as_output(self.__payoutIn2)
+        self.__iodevice.set_pin_as_output(self.__payoutIn3)
+        self.payout_reset()
+        self.__iodevice.set_pin(self.__payoutIn3, 1)
 
     def set_inhibits(self, inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
         self.__inhibits = inhibits
@@ -52,11 +60,10 @@ class fnordload(object):
         print "Payout of " + str(payoutcoins) + " Coins"
         self.write_coinlevel(self.__coins - payoutcoins);
         self.__LCD.payout_in_progress()
-        time.sleep(0.2 * payoutcoins)
         for i in range(0, payoutcoins):
-            self.__iodevice.set_pin(self.__payoutpin, 0)
+            self.__iodevice.set_pin(self.__payoutIn3, 0)
             time.sleep(0.1)
-            self.__iodevice.set_pin(self.__payoutpin, 1)
+            self.__iodevice.set_pin(self.__payoutIn3, 1)
             time.sleep(0.1)
         self.__eSSP.enable()
         self.welcome()
@@ -88,9 +95,22 @@ class fnordload(object):
                 self.welcome()
 
             time.sleep(0.5)
+    
+    def payout_reset(self):
+        self.__iodevice.set_pin(self.__payoutIn1, 0)
+        self.__iodevice.set_pin(self.__payoutIn2, 1)
+        time.sleep(0.5)
+        self.__iodevice.set_pin(self.__payoutIn1, 1)
+        self.__iodevice.set_pin(self.__payoutIn2, 0)
+
+    def exit_handler(self, signal, frame):
+        self.payout_reset()
+        sys.exit()
 
 if __name__ == "__main__":
     fnordload = fnordload(inhibits = [1, 1, 1, 1, 1, 1])
+
+    signal.signal(signal.SIGINT, fnordload.exit_handler)
 
     while True:
         fnordload.main()
