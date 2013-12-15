@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import LCD
 import time
 import eSSP.eSSP
