@@ -39,6 +39,8 @@ class fnordload(object):
         f = open('coins', 'w')
         f.write(str(newlevel))
         f.close()
+        import ctypes
+        ctypes.CDLL("libc.so.6").sync()
         self.set_coinlevelinhibits()
 
     def set_coinlevelinhibits(self):
