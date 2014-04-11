@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 
-import LCD
 import time
-import eSSP.eSSP
 import max7301
-import signal
-import sys
 import logging
-import logging.handlers
 
 class KeyPad(object):
     INPUT_ROW_PINS = [12, 13, 18, 17]

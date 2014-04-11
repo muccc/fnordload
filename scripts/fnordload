@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import LCD
+import fnordload
 import time
 import eSSP.eSSP
 import max7301
@@ -9,12 +9,12 @@ import sys
 import logging
 import logging.handlers
 
-class fnordload(object):
+class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
             inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5, payoutIn1 = 4,
             payoutIn2 = 5, payoutIn3 = 6):
         self.__logger = logging.getLogger('logger')
-        self.__LCD = LCD.LCD(LCDserver)
+        self.__LCD = fnordload.LCD(LCDserver)
         self.__eSSP = eSSP.eSSP.eSSP(eSSPport)
         self.__cointype = cointype
         self.__inhibits = inhibits
@@ -128,11 +128,11 @@ if __name__ == "__main__":
     logger.info('Starting fnordload')
     
     try:
-        fnordload = fnordload(inhibits = [1, 1, 1, 0, 0, 0])
-        signal.signal(signal.SIGINT, fnordload.exit_handler)
+        fl = Fnordload(inhibits = [1, 1, 1, 0, 0, 0])
+        signal.signal(signal.SIGINT, fl.exit_handler)
 
         while True:
-            fnordload.main()
+            fl.main()
     except Exception, e:
         logger.exception(e)
         import traceback
