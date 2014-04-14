@@ -28,12 +28,9 @@ class LCD(object):
     def setup(self):
         self.write("Fnordload booting", "", "Please stand by...")
 
-    def welcome(self, inhibits, values):
-        accepted = []
-        for value, inhibit in zip(values, inhibits):
-            if (inhibit == 1):
-                accepted.append(str(value))
-        
+    def welcome(self, values):
+        accepted = [str(x) for x in values]
+
         if (len(accepted) == 0):
             self.out_of_order()
         else:
