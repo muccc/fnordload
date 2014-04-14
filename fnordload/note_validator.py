@@ -38,7 +38,11 @@ class NoteValidator(object):
                 newinhibits.append(0)
 
         self._set_inhibits(newinhibits)
-   
+    
+    def get_accepted_values(self):
+        accepted = [x[0] for x in zip(self._channelvalues, self._inhibits) if x[1]]
+        return accepted
+
     def read_note(self, timeout = 30, message_callback = lambda x: None):
         self._reset_poll()
         t0 = time.time()
@@ -56,6 +60,9 @@ class NoteValidator(object):
                 return self._channelvalues[poll[1][1] - 1]
             elif (len(poll) > 1 and poll[1] == '0xed'):
                 raise InvalidNoteError()
+            elif (len(poll) > 1 and poll[0] == '0xf0'):
+                self._logger.warning(str(poll))
+
         raise TimeoutError()
 
     def _read_poll(self):
