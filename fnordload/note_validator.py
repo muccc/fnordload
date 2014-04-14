@@ -2,6 +2,7 @@ import time
 import eSSP.eSSP
 import logging
 import threading
+import Queue
 
 class InvalidNoteError(Exception):
     pass
@@ -20,6 +21,8 @@ class NoteValidator(object):
         self._thread = threading.Thread(target = self._run)
         self._keep_running = True
         self._essp_lock = threading.RLock()
+        self._poll_queue = Queue.Queue(5)
+
         self._thread.start()
 
     def _set_inhibits(self, inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
@@ -54,4 +57,20 @@ class NoteValidator(object):
             elif (len(poll) > 1 and poll[1] == '0xed'):
                 raise InvalidNoteError()
         raise TimeoutError()
+
+    def _read_poll(self):
+        return self._poll_queue.get()
+
+    def _reset_poll(self):
+        try:
+            while True:
+                self._poll_queue.get(block = False)
+        except Queue.Empty:
+            pass
+
+    def run(self):
+        while self._keep_running:
+            with self._essp_lock:
+                poll = self._eSSP.poll()
+            self._poll_queue.put(poll)
 
