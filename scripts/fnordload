@@ -42,7 +42,7 @@ class Fnordload(object):
                 pass
 
     def exit_handler(self, signal, frame):
-        self._coin_hopper.payout_reset()
+        self._coin_hopper.reset()
         sys.exit(0)
 
 if __name__ == "__main__":
