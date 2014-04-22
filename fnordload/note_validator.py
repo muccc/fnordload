@@ -13,7 +13,7 @@ class TimeoutError(Exception):
 class NoteValidator(object):
     def __init__(self, device = '/dev/ttyACM0', inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
         self._logger = logging.getLogger('logger')
-        self._eSSP = eSSP.eSSP.eSSP(eSSPport)
+        self._eSSP = eSSP.eSSP.eSSP(device)
         self._inhibits = inhibits
         self._eSSP.sync()
         self._eSSP.enable_higher_protocol()
@@ -24,6 +24,10 @@ class NoteValidator(object):
         self._poll_queue = Queue.Queue(5)
 
         self._thread.start()
+    
+    def exit(self):
+        self._keep_running = False
+        self._thread.join()
 
     def _set_inhibits(self, inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
         self._inhibits = inhibits
@@ -31,7 +35,7 @@ class NoteValidator(object):
    
     def set_max_accepted_value(self, max_value):
         newinhibits = []
-        for channelvalue, oldinhibit in zip(self.__channelvalues, self.__inhibits):
+        for channelvalue, oldinhibit in zip(self._channelvalues, self._inhibits):
             if channelvalue <= max_value and oldinhibit != 0:
                 newinhibits.append(1)
             else:
@@ -75,7 +79,7 @@ class NoteValidator(object):
         except Queue.Empty:
             pass
 
-    def run(self):
+    def _run(self):
         while self._keep_running:
             with self._essp_lock:
                 poll = self._eSSP.poll()
