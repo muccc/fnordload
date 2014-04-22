@@ -35,11 +35,11 @@ class CoinHopper(object):
         f.close()
     
     @property
-    def get_coin_type(self):
+    def coin_type(self):
         return self._cointype
 
     @property
-    def get_coin_level(self):
+    def coin_level(self):
         return self._coins
 
     def payout(self, value):
