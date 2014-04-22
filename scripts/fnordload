@@ -10,79 +10,39 @@ import logging.handlers
 
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
-            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5, payoutIn1 = 4,
-            payoutIn2 = 5, payoutIn3 = 6):
+            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5):
         self.__logger = logging.getLogger('logger')
         self.__LCD = fnordload.LCD(LCDserver)
         self._note_validator = fnordload.NoteValidator(
                 device = eSSPport, inhibits = inhibits)
+        self._coin_hopper = fnordload.CoinHopper(cointype)
+        self._setup()
 
-        self.__cointype = cointype
-        self.__iodevice = max7301.MAX7301()
-        self.__payoutIn1 = payoutIn1
-        self.__payoutIn2 = payoutIn2
-        self.__payoutIn3 = payoutIn3
-        self.setup()
-
-    def setup(self):
+    def _setup(self):
         self.__LCD.setup()
-        self.read_coinlevel()
-        self.__iodevice.set_pin_as_output(self.__payoutIn1)
-        self.__iodevice.set_pin_as_output(self.__payoutIn2)
-        self.__iodevice.set_pin_as_output(self.__payoutIn3)
-        self.payout_reset()
-        self.__iodevice.set_pin(self.__payoutIn3, 1)
 
-    def write_coinlevel(self, newlevel):
-        f = open('coins', 'w')
-        f.write(str(newlevel))
-        f.close()
-        import ctypes
-        ctypes.CDLL("libc.so.6").sync()
-        self.read_coinlevel()
-
-    def read_coinlevel(self):
-        f = open('coins', 'r')
-        self.__coins = int(f.read())
-        f.close()
-        self._note_validator.set_max_accepted_value(
-                self.__coins * self.__cointype)
-
-    def payout(self, value):
-        payoutcoins = int(value / self.__cointype)
-        self.__logger.info("Payout of " + str(payoutcoins) + " Coins")
-        self.write_coinlevel(self.__coins - payoutcoins);
-        self.__LCD.payout_in_progress()
-        for i in range(0, payoutcoins):
-            self.__iodevice.set_pin(self.__payoutIn3, 0)
-            time.sleep(0.1)
-            self.__iodevice.set_pin(self.__payoutIn3, 1)
-            time.sleep(0.1)
-
-    def welcome(self):
+    def _welcome(self):
         self.__LCD.welcome(self._note_validator.get_accepted_values())
 
     def main(self):
         while True:
-            self.welcome()
+            self._note_validator.set_max_accepted_value(
+                    self._coin_hopper.coin_level *
+                    self._coin_hopper.coin_type)
+    
+            self._welcome()
+
             try:
                 amount = self._note_validator.read_note()
-                self.payout(amount)
+                self._coin_hopper.payout(amount)
             except fnordload.InvalidNoteError:
                 self.__LCD.rejected_note()
                 time.sleep(2)
             except fnordload.TimeoutError:
                 pass
-    
-    def payout_reset(self):
-        self.__iodevice.set_pin(self.__payoutIn1, 0)
-        self.__iodevice.set_pin(self.__payoutIn2, 1)
-        time.sleep(0.5)
-        self.__iodevice.set_pin(self.__payoutIn1, 1)
-        self.__iodevice.set_pin(self.__payoutIn2, 0)
 
     def exit_handler(self, signal, frame):
-        self.payout_reset()
+        self._coin_hopper.payout_reset()
         sys.exit(0)
 
 if __name__ == "__main__":
