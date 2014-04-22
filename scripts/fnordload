@@ -10,18 +10,18 @@ import logging.handlers
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
             inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5):
-        self.__logger = logging.getLogger('logger')
-        self.__LCD = fnordload.LCD(LCDserver)
+        self._logger = logging.getLogger('logger')
+        self._LCD = fnordload.LCD(LCDserver)
         self._note_validator = fnordload.NoteValidator(
                 device = eSSPport, inhibits = inhibits)
         self._coin_hopper = fnordload.CoinHopper(cointype)
         self._setup()
 
     def _setup(self):
-        self.__LCD.setup()
+        self._LCD.setup()
 
     def _welcome(self):
-        self.__LCD.welcome(self._note_validator.get_accepted_values())
+        self._LCD.welcome(self._note_validator.get_accepted_values())
 
     def main(self):
         while True:
@@ -35,7 +35,7 @@ class Fnordload(object):
                 amount = self._note_validator.read_note()
                 self._coin_hopper.payout(amount)
             except fnordload.InvalidNoteError:
-                self.__LCD.rejected_note()
+                self._LCD.rejected_note()
                 time.sleep(2)
             except fnordload.TimeoutError:
                 pass
