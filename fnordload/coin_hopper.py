@@ -1,4 +1,6 @@
 import max7301
+import logging
+import ctypes
 
 class CoinHopper(object):
     def __init__(self, cointype, payoutIn1 = 4,
@@ -24,7 +26,6 @@ class CoinHopper(object):
         f = open('coins', 'w')
         f.write(str(newlevel))
         f.close()
-        import ctypes
         ctypes.CDLL("libc.so.6").sync()
         self._read_coinlevel()
 
