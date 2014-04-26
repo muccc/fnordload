@@ -31,7 +31,8 @@ class NoteValidator(object):
 
     def _set_inhibits(self, inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
         self._inhibits = inhibits
-        self._eSSP.set_inhibits(self._eSSP.easy_inhibit(inhibits), '0x00')
+        with self._essp_lock:
+            self._eSSP.set_inhibits(self._eSSP.easy_inhibit(inhibits), '0x00')
    
     def set_max_accepted_value(self, max_value):
         newinhibits = []
@@ -50,7 +51,8 @@ class NoteValidator(object):
     def read_note(self, timeout = 30, message_callback = lambda x: None):
         self._reset_poll()
         t0 = time.time()
-        self._eSSP.enable()
+        with self._essp_lock:
+            self._eSSP.enable()
         while time.time() < t0 + timeout:
             poll = self._read_poll()
             if len(poll) > 1 and len(poll[1]) == 2 and poll[1][0] == '0xef':
@@ -60,7 +62,8 @@ class NoteValidator(object):
                     self._eSSP.hold()
                     message_callback(self._channelvalues[poll[1][1] - 1])
             elif len(poll) > 1 and len(poll[1]) == 2 and poll[1][0] == '0xee':
-                self._eSSP.disable()
+                with self._essp_lock:
+                    self._eSSP.disable()
                 return self._channelvalues[poll[1][1] - 1]
             elif (len(poll) > 1 and poll[1] == '0xed'):
                 raise InvalidNoteError()
