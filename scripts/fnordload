@@ -2,7 +2,6 @@
 
 import fnordload
 import time
-import max7301
 import signal
 import sys
 import logging
