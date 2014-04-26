@@ -22,6 +22,7 @@ class NoteValidator(object):
         self._keep_running = True
         self._essp_lock = threading.RLock()
         self._poll_queue = Queue.Queue(5)
+        self._thread.setDaemon(True)
 
         self._thread.start()
     
