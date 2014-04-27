@@ -28,14 +28,13 @@ class LCD(object):
     def setup(self):
         self.write("Fnordload booting", "", "Please stand by...")
 
-    def welcome(self, values):
+    def show_accepted_values(self, values):
         accepted = [str(x) for x in values]
 
         if (len(accepted) == 0):
-            self.out_of_order()
+            self.write("Sorry!","No change available", "", "             The MGT")
         else:
-            self.__screen.set_backlight("on")
-            self.write("Welcome to Fnordload", "Accpeting (Euro):", ", ".join(accepted),"        Insert money")
+            self.write("Giving Change", "Accepting (Euro):", ", ".join(accepted),"        Insert money")
 
     def out_of_order(self):
         self.write("Sorry!","Fnordload is currently", "out of order.", "             The MGT")

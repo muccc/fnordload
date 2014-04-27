@@ -6,39 +6,53 @@ import signal
 import sys
 import logging
 import logging.handlers
+import max7301
 
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
             inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5):
         self._logger = logging.getLogger('logger')
-        self._LCD = fnordload.LCD(LCDserver)
+        self._lcd = fnordload.LCD(LCDserver)
+        self._io_device = max7301.MAX7301()
         self._note_validator = fnordload.NoteValidator(
                 device = eSSPport, inhibits = inhibits)
-        self._coin_hopper = fnordload.CoinHopper(cointype)
+        self._coin_hopper = fnordload.CoinHopper(cointype, io_device = self._io_device)
+        self._ui = fnordload.UI(io_device = self._io_device, lcd = self._lcd)
         self._setup()
 
     def _setup(self):
-        self._LCD.setup()
-
-    def _welcome(self):
-        self._LCD.welcome(self._note_validator.get_accepted_values())
+        self._lcd.setup()
 
     def main(self):
         while True:
-            self._note_validator.set_max_accepted_value(
-                    self._coin_hopper.coin_level *
-                    self._coin_hopper.coin_type)
-    
-            self._welcome()
-
             try:
-                amount = self._note_validator.read_note()
-                self._coin_hopper.payout(amount)
-            except fnordload.InvalidNoteError:
-                self._LCD.rejected_note()
-                time.sleep(2)
+                choice = self._ui.choose("Fnordload Main Menu", ("Give change", "upay", "Debug"))
+
+                if choice == "Give change":
+                    self._give_change()
             except fnordload.TimeoutError:
                 pass
+
+    def _give_change(self):
+        self._note_validator.set_max_accepted_value(
+                self._coin_hopper.coin_level *
+                self._coin_hopper.coin_type)
+
+        accepted_values = self._note_validator.get_accepted_values()
+        self._lcd.show_accepted_values(accepted_values)
+
+        if not accepted_values:
+            time.sleep(5)
+            return
+
+        try:
+            amount = self._note_validator.read_note()
+            self._coin_hopper.payout(amount)
+        except fnordload.InvalidNoteError:
+            self._lcd.rejected_note()
+            time.sleep(2)
+        except fnordload.TimeoutError:
+            pass
 
     def exit_handler(self, signal, frame):
         self._coin_hopper.reset()

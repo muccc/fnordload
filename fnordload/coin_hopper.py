@@ -4,12 +4,12 @@ import ctypes
 import time
 
 class CoinHopper(object):
-    def __init__(self, cointype, payoutIn1 = 4,
+    def __init__(self, cointype, io_device, payoutIn1 = 4,
                  payoutIn2 = 5, payoutIn3 = 6):
         self._logger = logging.getLogger('logger')
 
         self._cointype = cointype
-        self._iodevice = max7301.MAX7301()
+        self._iodevice = io_device
         self._payoutIn1 = payoutIn1
         self._payoutIn2 = payoutIn2
         self._payoutIn3 = payoutIn3
