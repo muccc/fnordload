@@ -7,6 +7,7 @@ import sys
 import logging
 import logging.handlers
 import max7301
+import nupay
 
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
@@ -26,12 +27,48 @@ class Fnordload(object):
     def main(self):
         while True:
             try:
-                choice = self._ui.choose("Fnordload Main Menu", ("Give change", "upay", "Debug"))
+                choice = self._ui.choose("Fnordload Main Menu", ("Give Change", "UPAY", "Debug"))
 
-                if choice == "Give change":
+                if choice == "Give Change":
                     self._give_change()
+                elif choice == 'UPAY':
+                    self._upay_menu()
+                else:
+                    self._not_implemented()
             except fnordload.TimeoutError:
                 pass
+
+    def _upay_menu(self):
+        try:
+            choice = self._ui.choose("Fnordload UPAY Menu", ("Show Balance", "Get Tokens", "Normalize Purse"))
+
+            if choice == "Show Balance":
+                self._upay_show_balance()
+            else:
+                self._not_implemented()
+        except fnordload.TimeoutError:
+            pass
+
+    def _not_implemented(self):
+        self._lcd.write("Fnordload", "", "Not Yet Implemented", "             The MGT")
+        time.sleep(5)
+
+    def _upay_show_balance(self):
+        token_reader = nupay.USBTokenReader()
+        t0 = time.time()
+
+        self._lcd.write("Fnordload UPAY", "Please insert", "USB drive with", "purse file(s)")
+
+        tokens = []
+        while time.time() < t0 + 30:
+            try:
+                tokens = token_reader.read_tokens()
+                break
+            except nupay.NoTokensAvailableError:
+                time.sleep(1)
+
+        self._lcd.write("Fnordload UPAY", "Read %d tokens" % len(tokens), "", "")
+        time.sleep(5)
 
     def _give_change(self):
         self._note_validator.set_max_accepted_value(
