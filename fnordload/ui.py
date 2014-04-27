@@ -1,8 +1,9 @@
 import keypad
 
 class UI(object):
-    def __init__(self, io_device):
+    def __init__(self, io_device, lcd):
         self._keypad = keypad.KeyPad(io_device)
+        self._lcd = lcd
     
     def choose(self, message, options):
         if len(options) < 1 or len(options) > 3:
