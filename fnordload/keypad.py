@@ -3,9 +3,7 @@
 import time
 import max7301
 import logging
-
-class TimeoutError(Exception):
-    pass
+import fnordload
 
 class KeyPad(object):
     INPUT_ROW_PINS = [12, 13, 18, 17]
@@ -41,7 +39,7 @@ class KeyPad(object):
 
         while True:
             if time.time() > t0 + timeout:
-                raise TimeoutError("No key pressed")
+                raise fnordload.TimeoutError("No key pressed")
 
             keys = self.scan()
             if all_released_counter < 1 and keys:
