@@ -10,12 +10,12 @@ class UI(object):
             raise ValueError('Need between 1 and 3 options')
         
         count = len(options)
+        display_options = [''] * 3
+
         for i in range(count):
-            options[i] = str(i + 1) + ': ' + options[i]
+            display_options[i] = str(i + 1) + ': ' + options[i]
 
-        options.extend([''] * (3 - count)) 
-
-        self._lcd.write(message, options[0], options[1], options[2])
+        self._lcd.write(message, display_options[0], display_options[1], display_options[2])
         
         while True:
             choice = self._keypad.get_single_key()
