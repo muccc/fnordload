@@ -25,7 +25,9 @@ class UI(object):
 
 import max7301
 if __name__ == "__main__":
-    iodevice = max7301.MAX7301()
-    ui = UI(io_device = io_device)
-    ui.choose('message', ['foo', 'bar'])
+    import lcd
+    lcd = lcd.LCD('localhost')
+    io_device = max7301.MAX7301()
+    ui = UI(io_device = io_device, lcd = lcd)
+    print ui.choose('krobin moechte', ['pizza', 'doener'])
 
