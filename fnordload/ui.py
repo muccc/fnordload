@@ -10,7 +10,10 @@ class UI(object):
             raise ValueError('Need between 1 and 3 options')
         
         count = len(options)
-        options.extend([''] * 3 - count) 
+        for i in range(count):
+            options[i] = str(i + 1) + ': ' + options[i]
+
+        options.extend([''] * (3 - count)) 
 
         self._lcd.write(message, options[0], options[1], options[2])
         
