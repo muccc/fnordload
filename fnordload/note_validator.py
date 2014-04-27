@@ -87,5 +87,11 @@ class NoteValidator(object):
         while self._keep_running:
             with self._essp_lock:
                 poll = self._eSSP.poll()
-            self._poll_queue.put(poll)
+
+            while self._keep_running:
+                try:
+                    self._poll_queue.put(poll, timeout = 1)
+                except Queue.Full:
+                    continue
+                break
 
