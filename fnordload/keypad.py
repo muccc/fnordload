@@ -34,7 +34,7 @@ class KeyPad(object):
             time.sleep(scan_time)
         return pressed_keys
 
-    def get_single_key(self, timeout = 3):
+    def get_single_key(self, timeout = 30):
         t0 = time.time()
         key = None
         all_released_counter = 0
