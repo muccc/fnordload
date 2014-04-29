@@ -15,10 +15,11 @@ class Fnordload(object):
         self._logger = logging.getLogger('logger')
         self._lcd = fnordload.LCD(LCDserver)
         self._io_device = max7301.MAX7301()
+        self._keypad = fnordload.KeyPad(self._io_device)
         self._note_validator = fnordload.NoteValidator(
                 device = eSSPport, inhibits = inhibits)
         self._coin_hopper = fnordload.CoinHopper(cointype, io_device = self._io_device)
-        self._ui = fnordload.UI(io_device = self._io_device, lcd = self._lcd)
+        self._ui = fnordload.UI(keypad = self._keypad, lcd = self._lcd)
         self._setup()
 
     def _setup(self):
