@@ -34,7 +34,7 @@ class CoinHopper(object):
         f = open('coins', 'r')
         self._coins = int(f.read())
         f.close()
-    
+
     @property
     def coin_type(self):
         return self._cointype
@@ -42,6 +42,9 @@ class CoinHopper(object):
     @property
     def coin_level(self):
         return self._coins
+
+    def increase_coin_level(self, extra_coins):
+        self._write_coinlevel(self._coins + extra_coins)
 
     def payout(self, value):
         payoutcoins = int(value / self._cointype)
