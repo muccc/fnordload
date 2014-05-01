@@ -78,17 +78,7 @@ class Fnordload(object):
         time.sleep(5)
 
     def _load_coins(self):
-        coins = 0
-        while True:
-            self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d" % coins, "")
-            k = self._keypad.get_single_key()
-            if k == '#':
-                break
-            if k == '*':
-                coins = coins / 10
-            else:
-                coins *= 10
-                coins += k
+        coins = self._ui.input_number(lambda coins: self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d" % coins, ""))
 
         self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d" % coins, "WRITING")
         self._coin_hopper.increase_coin_level(coins)

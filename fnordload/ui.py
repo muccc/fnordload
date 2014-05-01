@@ -30,6 +30,21 @@ class UI(object):
             if key in functions:
                 return functions[key]()
 
+    def input_number(self, update_function):
+        value = 0
+        while True:
+            update_function(value)
+            k = self._keypad.get_single_key()
+            if k == '#':
+                break
+            if k == '*':
+                value = value / 10
+            else:
+                value *= 10
+                value += k
+
+        return value
+
 import max7301
 if __name__ == "__main__":
     import lcd
