@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 import max7301
 import nupay
+from decimal import Decimal
 
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
@@ -66,7 +67,7 @@ class Fnordload(object):
     def _upay_menu(self):
         upay_menu = (
             {'key': 1,      'name': "Show Balance",     'function': self._upay_show_balance,    'visible': True},
-            {'key': 2,      'name': "Get Tokens",       'function': self._not_implemented,      'visible': True},
+            {'key': 2,      'name': "Get Tokens",       'function': self._upay_get_tokens,      'visible': True},
             {'key': 3,      'name': "Normalize Purse",  'function': self._not_implemented,      'visible': True},
             {'key': '*',    'name': "Exit",             'function': lambda: None,               'visible': False},
         )
@@ -102,14 +103,14 @@ class Fnordload(object):
         token_reader = nupay.USBTokenReader()
         t0 = time.time()
 
-        self._lcd.write("Fnordload UPAY", "Please insert", "USB drive with", "purse file(s)")
+        self._lcd.write("Fnordload UPAY", "", "Please insert your", "USB drive")
 
         tokens = []
         while time.time() < t0 + 30:
             try:
                 tokens = token_reader.read_tokens(
                             found_medium_callback =
-                                lambda: self._lcd.write("Fnordload UPAY", "", "Reading USB drive", ""))
+                                lambda x: self._lcd.write("Fnordload UPAY", "", "Reading USB drive", ""))
                 break
             except nupay.NoTokensAvailableError:
                 time.sleep(1)
@@ -119,12 +120,76 @@ class Fnordload(object):
             time.sleep(5)
             return
 
+        self._lcd.write("Fnordload UPAY", "", "Validating tokens", "")
         token_client = nupay.TokenClient()
         tokens = token_client.validate_tokens(tokens)
         value = sum([token.value for token in tokens])
 
         self._lcd.write("Fnordload UPAY", "", "Read %d tokens" % len(tokens), "Value: %.2f Euro" % value)
         time.sleep(5)
+
+    def _upay_get_tokens(self):
+        self._lcd.write("Fnordload UPAY", "", "Reading internal", "purse...")
+        local_tokens = nupay.read_tokens_from_file('local-purse', max_tokens = 100, max_size = 300 * 1024)
+        token_client = nupay.TokenClient()
+
+        self._lcd.write("Fnordload UPAY", "", "Validating internal", "purse...")
+        local_tokens = token_client.validate_tokens(local_tokens)
+
+        available_amount = sum([t.value for t in local_tokens])
+        self._note_validator.set_max_accepted_value(available_amount)
+
+        accepted_values = [str(x) for x in self._note_validator.get_accepted_values()]
+
+        if (len(accepted_values) == 0):
+            self._lcd.write("Fnordload UPAY", "No tokens available", "", "             The MGT")
+            time.sleep(5)
+            return
+
+        class local:
+            purse_path = None
+        def found_usb_drive(path):
+            self._lcd.write("Fnordload UPAY", "", "Reading USB drive", "")
+            local.purse_path = path
+
+        token_reader = nupay.USBTokenReader()
+        t0 = time.time()
+        self._lcd.write("Fnordload UPAY", "", "Please insert your", "USB drive")
+
+        tokens = []
+        while time.time() < t0 + 30:
+            try:
+                tokens = token_reader.read_tokens(found_medium_callback = found_usb_drive)
+            except nupay.NoTokensAvailableError:
+                time.sleep(1)
+
+            if local.purse_path:
+                break
+
+        if not local.purse_path:
+            self._lcd.write("Fnordload UPAY", "", "No purse file found", "")
+            time.sleep(5)
+            return
+
+        self._lcd.write("Fnordload UPAY", "Accepting (Euro):", ", ".join(accepted_values),"        Insert money")
+
+        try:
+            amount = self._note_validator.read_note()
+        except fnordload.InvalidNoteError:
+            self._lcd.rejected_note()
+            time.sleep(2)
+            return
+
+        new_token_values = [Decimal(0.5)] * (amount * 2)
+        new_tokens = token_client.create_tokens(new_token_values)
+        local_tokens = local_tokens[0:amount * 2]
+
+        token_client.transform_tokens(local_tokens, new_tokens)
+
+        with open(local.purse_path, 'a') as f:
+            f.writelines([str(token)+'\n' for token in new_tokens])
+
+        self._upay_show_balance()
 
     def _give_change(self):
         self._note_validator.set_max_accepted_value(
