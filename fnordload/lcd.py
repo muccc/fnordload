@@ -58,5 +58,5 @@ class LCD(object):
         self.write("Payout in Progress", "", "", "Please stand by")
 
     def rejected_note(self):
-        self.__screen.set_backlight("flash")
+        #self.__screen.set_backlight("flash")
         self.write("Sorry, this note", "cannot be accepted" , "at this time.")
