@@ -26,18 +26,14 @@ class Fnordload(object):
         self._lcd.setup()
 
     def main(self):
+        main_menu = (
+            {'key': 1, 'name': "Give Change",  'function': self._give_change,   'visible': True},
+            {'key': 2, 'name': "UPAY",         'function': self._upay_menu,     'visible': True},
+            {'key': 3, 'name': "Manage",       'function': self._manage,        'visible': True},
+        )
         while True:
             try:
-                choice = self._ui.choose("Fnordload Main Menu", ("Give Change", "UPAY", "Manage"))
-
-                if choice == "Give Change":
-                    self._give_change()
-                elif choice == 'UPAY':
-                    self._upay_menu()
-                elif choice == 'Manage':
-                    self._manage()
-                else:
-                    self._not_implemented()
+                self._ui.choose("Fnordload Main Menu", main_menu)
             except fnordload.TimeoutError:
                 pass
 
@@ -59,20 +55,21 @@ class Fnordload(object):
                 break
 
     def _manage_menu(self):
-        choice = self._ui.choose("Fnordload MGT Menu", ("Load Coins", "Empty Hopper"))
+        manage_menu = (
+            {'key': 1, 'name': "Load Coins",   'function': self._load_coins,       'visible': True},
+            {'key': 2, 'name': "Empty Hopper", 'function': self._not_implemented,  'visible': True},
+        )
 
-        if choice == "Load Coins":
-            self._load_coins()
-        else:
-            self._not_implemented()
+        self._ui.choose("Fnordload MGT Menu", manage_menu)
 
     def _upay_menu(self):
-        choice = self._ui.choose("Fnordload UPAY Menu", ("Show Balance", "Get Tokens", "Normalize Purse"))
+        upay_menu = (
+            {'key': 1, 'name': "Show Balance",     'function': self._upay_show_balance,    'visible': True},
+            {'key': 2, 'name': "Get Tokens",       'function': self._not_implemented,      'visible': True},
+            {'key': 3, 'name': "Normalize Purse",  'function': self._not_implemented,      'visible': True},
+        )
 
-        if choice == "Show Balance":
-            self._upay_show_balance()
-        else:
-            self._not_implemented()
+        self._ui.choose("Fnordload UPAY Menu", upay_menu)
 
     def _not_implemented(self):
         self._lcd.write("Fnordload", "", "Not Yet Implemented", "             The MGT")
