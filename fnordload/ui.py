@@ -30,8 +30,7 @@ class UI(object):
             if key in functions:
                 return functions[key]()
 
-    def input_number(self, update_function):
-        value = 0
+    def input_number(self, value, update_function):
         while True:
             update_function(value)
             k = self._keypad.get_single_key()

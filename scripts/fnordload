@@ -56,9 +56,9 @@ class Fnordload(object):
 
     def _manage_menu(self):
         manage_menu = (
-            {'key': 1,      'name': "Load Coins",   'function': self._load_coins,       'visible': True},
-            {'key': 2,      'name': "Empty Hopper", 'function': self._not_implemented,  'visible': True},
-            {'key': '*',    'name': "Exit",         'function': lambda: None,           'visible': False},
+            {'key': 1,      'name': "Load Coins", 'function': self._load_coins,       'visible': True},
+            {'key': 2,      'name': "Give Coins", 'function': self._give_coins,       'visible': True},
+            {'key': '*',    'name': "Exit",       'function': lambda: None,           'visible': False},
         )
 
         self._ui.choose("Fnordload MGT Menu", manage_menu)
@@ -78,11 +78,22 @@ class Fnordload(object):
         time.sleep(5)
 
     def _load_coins(self):
-        coins = self._ui.input_number(lambda coins: self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d" % coins, ""))
+        coins = self._ui.input_number(0, lambda coins: self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d Coins" % coins, ""))
 
-        self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d" % coins, "WRITING")
+        self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d Coins" % coins, "WRITING")
         self._coin_hopper.increase_coin_level(coins)
-        self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d" % coins, "DONE")
+        self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d Coins" % coins, "DONE")
+        time.sleep(2)
+        self._lcd.write("Fnordload MGT Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
+        time.sleep(2)
+
+    def _give_coins(self):
+        coins = self._coin_hopper.coin_level
+        coins = self._ui.input_number(coins, lambda coins: self._lcd.write("Fnordload MGT Menu", "Give Coins", "Amount: %d Coins" % coins, ""))
+
+        self._lcd.write("Fnordload MGT Menu", "Give Coins", "Amount: %d Coins" % coins, "Please Wait")
+        self._coin_hopper.payout(coins * self._coin_hopper.coin_type)
+        self._lcd.write("Fnordload MGT Menu", "Give Coins", "Amount: %d Coins" % coins, "DONE")
         time.sleep(2)
         self._lcd.write("Fnordload MGT Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
         time.sleep(2)
