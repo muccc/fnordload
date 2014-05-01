@@ -56,17 +56,19 @@ class Fnordload(object):
 
     def _manage_menu(self):
         manage_menu = (
-            {'key': 1, 'name': "Load Coins",   'function': self._load_coins,       'visible': True},
-            {'key': 2, 'name': "Empty Hopper", 'function': self._not_implemented,  'visible': True},
+            {'key': 1,      'name': "Load Coins",   'function': self._load_coins,       'visible': True},
+            {'key': 2,      'name': "Empty Hopper", 'function': self._not_implemented,  'visible': True},
+            {'key': '*',    'name': "Exit",         'function': lambda: None,           'visible': False},
         )
 
         self._ui.choose("Fnordload MGT Menu", manage_menu)
 
     def _upay_menu(self):
         upay_menu = (
-            {'key': 1, 'name': "Show Balance",     'function': self._upay_show_balance,    'visible': True},
-            {'key': 2, 'name': "Get Tokens",       'function': self._not_implemented,      'visible': True},
-            {'key': 3, 'name': "Normalize Purse",  'function': self._not_implemented,      'visible': True},
+            {'key': 1,      'name': "Show Balance",     'function': self._upay_show_balance,    'visible': True},
+            {'key': 2,      'name': "Get Tokens",       'function': self._not_implemented,      'visible': True},
+            {'key': 3,      'name': "Normalize Purse",  'function': self._not_implemented,      'visible': True},
+            {'key': '*',    'name': "Exit",             'function': lambda: None,               'visible': False},
         )
 
         self._ui.choose("Fnordload UPAY Menu", upay_menu)
