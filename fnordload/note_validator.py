@@ -67,9 +67,14 @@ class NoteValidator(object):
                     self._eSSP.disable()
                 return self._channelvalues[poll[1][1] - 1]
             elif (len(poll) > 1 and poll[1] == '0xed'):
+                with self._essp_lock:
+                    self._eSSP.disable()
                 raise InvalidNoteError()
             elif (len(poll) > 1 and poll[0] == '0xf0'):
                 self._logger.warning(str(poll))
+
+        with self._essp_lock:
+            self._eSSP.disable()
 
         raise TimeoutError()
 
