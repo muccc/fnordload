@@ -1,7 +1,7 @@
 import max7301
 import logging
 import time
-from . import utils
+from . import account
 
 class CoinHopper(object):
     def __init__(self, cointype, io_device, payoutIn1 = 4,
@@ -16,24 +16,12 @@ class CoinHopper(object):
         self.setup()
 
     def setup(self):
-        self._read_coinlevel()
+        self._account = account.Account('coins')
         self._iodevice.set_pin_as_output(self._payoutIn1)
         self._iodevice.set_pin_as_output(self._payoutIn2)
         self._iodevice.set_pin_as_output(self._payoutIn3)
         self.reset()
         self._iodevice.set_pin(self._payoutIn3, 1)
-
-    def _write_coinlevel(self, newlevel):
-        f = open('coins', 'w')
-        f.write(str(newlevel))
-        f.close()
-        utils.sync()
-        self._read_coinlevel()
-
-    def _read_coinlevel(self):
-        f = open('coins', 'r')
-        self._coins = int(f.read())
-        f.close()
 
     @property
     def coin_type(self):
@@ -41,15 +29,15 @@ class CoinHopper(object):
 
     @property
     def coin_level(self):
-        return self._coins
+        return self._account.value
 
     def increase_coin_level(self, extra_coins):
-        self._write_coinlevel(self._coins + extra_coins)
+        self._account.add(extra_coins)
 
     def payout(self, value):
         payoutcoins = int(value / self._cointype)
         self._logger.info("Payout of " + str(payoutcoins) + " Coins")
-        self._write_coinlevel(self._coins - payoutcoins);
+        self._account.sub(payoutcoins)
         for i in range(0, payoutcoins):
             self._iodevice.set_pin(self._payoutIn3, 0)
             time.sleep(0.1)
