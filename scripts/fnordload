@@ -8,11 +8,13 @@ import logging
 import logging.handlers
 import max7301
 import nupay
+import sys
+
 from decimal import Decimal
 
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
-            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5):
+            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5, code = '00000'):
         self._logger = logging.getLogger('logger')
         self._lcd = fnordload.LCD(LCDserver)
         self._io_device = max7301.MAX7301()
@@ -21,6 +23,7 @@ class Fnordload(object):
                 device = eSSPport, inhibits = inhibits)
         self._coin_hopper = fnordload.CoinHopper(cointype, io_device = self._io_device)
         self._ui = fnordload.UI(keypad = self._keypad, lcd = self._lcd)
+        self._code = code
         self._setup()
 
     def _setup(self):
@@ -40,15 +43,14 @@ class Fnordload(object):
 
     def _manage(self):
         self._lcd.write("Fnordload MGT  Menu", "", "Enter Code", "             The MGT")
-        code = (1,1,1,1,1)
-        input = []
+        input = ''
 
         while True:
             k = self._keypad.get_single_key()
             if k != '#':
-                input.append(k)
+                input += str(k)
             else:
-                if list(code) == input:
+                if self._code == input:
                     self._manage_menu()
                 else:
                     self._lcd.write("Fnordload MGT  Menu", "", "Wrong Code", "             The MGT")
@@ -231,7 +233,7 @@ if __name__ == "__main__":
     logger.info('Starting fnordload')
 
     try:
-        fl = Fnordload(inhibits = [1, 1, 1, 0, 0, 0])
+        fl = Fnordload(inhibits = [1, 1, 1, 0, 0, 0], code = sys.argv[1])
         signal.signal(signal.SIGINT, fl.exit_handler)
 
         while True:
