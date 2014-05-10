@@ -1,7 +1,7 @@
 import max7301
 import logging
-import ctypes
 import time
+from . import utils
 
 class CoinHopper(object):
     def __init__(self, cointype, io_device, payoutIn1 = 4,
@@ -27,7 +27,7 @@ class CoinHopper(object):
         f = open('coins', 'w')
         f.write(str(newlevel))
         f.close()
-        ctypes.CDLL("libc.so.6").sync()
+        utils.sync()
         self._read_coinlevel()
 
     def _read_coinlevel(self):
