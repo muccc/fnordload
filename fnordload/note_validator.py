@@ -11,7 +11,7 @@ class TimeoutError(Exception):
     pass
 
 class NoteValidator(object):
-    def __init__(self, device = '/dev/ttyACM0', inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
+    def __init__(self, device = '/dev/ttyACM0', inhibits = [1, 1, 1, 0, 0, 0]):
         self._logger = logging.getLogger('logger')
         self._eSSP = eSSP.eSSP.eSSP(device)
         self._inhibits = inhibits

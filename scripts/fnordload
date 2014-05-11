@@ -14,13 +14,12 @@ from decimal import Decimal
 
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
-            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5, code = '00000'):
+            cointype = 0.5, code = '00000'):
         self._logger = logging.getLogger('logger')
         self._lcd = fnordload.LCD(LCDserver)
         self._io_device = max7301.MAX7301()
         self._keypad = fnordload.KeyPad(self._io_device)
-        self._note_validator = fnordload.NoteValidator(
-                device = eSSPport, inhibits = inhibits)
+        self._note_handler = fnordload.NoteHandler(device = eSSPport)
         self._coin_hopper = fnordload.CoinHopper(cointype, io_device = self._io_device)
         self._ui = fnordload.UI(keypad = self._keypad, lcd = self._lcd)
         self._code = code
@@ -139,9 +138,9 @@ class Fnordload(object):
         local_tokens = token_client.validate_tokens(local_tokens)
 
         available_amount = sum([t.value for t in local_tokens])
-        self._note_validator.set_max_accepted_value(available_amount)
+        self._note_handler.set_max_accepted_value(available_amount)
 
-        accepted_values = [str(x) for x in self._note_validator.get_accepted_values()]
+        accepted_values = [str(x) for x in self._note_handler.get_accepted_values()]
 
         if (len(accepted_values) == 0):
             self._lcd.write("Fnordload UPAY", "No tokens available", "", "             The MGT")
@@ -176,7 +175,7 @@ class Fnordload(object):
         self._lcd.write("Fnordload UPAY", "Accepting (Euro):", ", ".join(accepted_values),"        Insert money")
 
         try:
-            amount = self._note_validator.read_note()
+            amount = self._note_handler.read_note('upay')
         except fnordload.InvalidNoteError:
             self._lcd.rejected_note()
             time.sleep(2)
@@ -194,11 +193,11 @@ class Fnordload(object):
         self._upay_show_balance()
 
     def _give_change(self):
-        self._note_validator.set_max_accepted_value(
+        self._note_handler.set_max_accepted_value(
                 self._coin_hopper.coin_level *
                 self._coin_hopper.coin_type)
 
-        accepted_values = self._note_validator.get_accepted_values()
+        accepted_values = self._note_handler.get_accepted_values()
         self._lcd.show_accepted_values(accepted_values)
 
         if not accepted_values:
@@ -206,7 +205,7 @@ class Fnordload(object):
             return
 
         try:
-            amount = self._note_validator.read_note()
+            amount = self._note_handler.read_note('change')
             self._coin_hopper.payout(amount)
         except fnordload.InvalidNoteError:
             self._lcd.rejected_note()
@@ -216,7 +215,7 @@ class Fnordload(object):
 
     def exit_handler(self, signal, frame):
         self._coin_hopper.reset()
-        self._note_validator.exit()
+        self._note_handler.exit()
 
         sys.exit(0)
 
@@ -233,7 +232,7 @@ if __name__ == "__main__":
     logger.info('Starting fnordload')
 
     try:
-        fl = Fnordload(inhibits = [1, 1, 1, 0, 0, 0], code = sys.argv[1])
+        fl = Fnordload(code = sys.argv[1])
         signal.signal(signal.SIGINT, fl.exit_handler)
 
         while True:
