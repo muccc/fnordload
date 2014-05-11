@@ -37,7 +37,7 @@ class CoinHopper(object):
     def payout(self, value):
         payoutcoins = int(value / self._cointype)
         self._logger.info("Payout of " + str(payoutcoins) + " Coins")
-        self._account.sub(payoutcoins)
+        self._account.subtract(payoutcoins)
         for i in range(0, payoutcoins):
             self._iodevice.set_pin(self._payoutIn3, 0)
             time.sleep(0.1)
