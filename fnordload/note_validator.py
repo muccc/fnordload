@@ -11,10 +11,11 @@ class TimeoutError(Exception):
     pass
 
 class NoteValidator(object):
-    def __init__(self, device = '/dev/ttyACM0', inhibits = [1, 1, 1, 0, 0, 0]):
+    def __init__(self, device = '/dev/ttyACM0', inhibits_mask = [1, 1, 1, 0, 0, 0]):
         self._logger = logging.getLogger('logger')
         self._eSSP = eSSP.eSSP.eSSP(device)
-        self._inhibits = inhibits
+        self._inhibits_mask = inhibits_mask
+        self._inhibits = [0, 0, 0, 0, 0, 0]
         self._eSSP.sync()
         self._eSSP.enable_higher_protocol()
         self._channelvalues = self._eSSP.channel_values()[1]
@@ -37,8 +38,8 @@ class NoteValidator(object):
    
     def set_max_accepted_value(self, max_value):
         newinhibits = []
-        for channelvalue, oldinhibit in zip(self._channelvalues, self._inhibits):
-            if channelvalue <= max_value and oldinhibit != 0:
+        for channelvalue, inhibit_mask in zip(self._channelvalues, self._inhibits_mask):
+            if channelvalue <= max_value and  inhibit_mask:
                 newinhibits.append(1)
             else:
                 newinhibits.append(0)
