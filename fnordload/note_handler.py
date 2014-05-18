@@ -16,11 +16,7 @@ class NoteHandler(NoteValidator):
        
     def read_note(self, account_name):
         amount = NoteValidator.read_note(self)
-
-        #self._add_to_account(account, amount)
-        self._check_account(account_name)
-        self._accounts[account_name].add(amount)
-
+        self.load(account_name, amount)
         return amount
 
     def account_value(self, account_name):
@@ -30,3 +26,7 @@ class NoteHandler(NoteValidator):
     def payout(self, account_name, value):
         self._check_account(account_name)
         self._accounts[account_name].subtract(value)
+
+    def load(self, account_name, amount):
+        self._check_account(account_name)
+        self._accounts[account_name].add(amount)

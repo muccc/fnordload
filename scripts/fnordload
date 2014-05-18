@@ -39,7 +39,7 @@ class Fnordload(object):
                 self._ui.choose(name, menu)
         except Exit:
             pass
- 
+
     def main(self):
         main_menu = (
             {'key': 1, 'name': "Give Change",  'function': self._give_change,   'visible': True},
@@ -132,38 +132,103 @@ class Fnordload(object):
     def _refill_hopper(self):
         pass
 
+    def _choose_account(self, header):
+        upay_balance = self._note_handler.account_value('upay')
+        change_balance = self._note_handler.account_value('change')
+        self._lcd.write(header,
+                        "Choose account",
+                        "1: UPAY (% 7.02f)" % upay_balance,
+                        "2: Change(% 7.02f)" % change_balance)
+
+        key = self._keypad.get_single_key(accepted_keys = [1, 2, '*'])
+        if key == '*':
+            return
+
+        account_name = 'upay'
+        account_name_ui = 'UPAY'
+        if key == 2:
+            account_name = 'change'
+            account_name_ui = 'Change'
+
+        return (account_name, account_name_ui)
+
     def _load_notes(self):
-        pass
+        account_name, account_name_ui = self._choose_account("Fnordload VLDTR Menu")
+
+        balance = self._note_handler.account_value(account_name)
+        amount = self._ui.input_number(0,
+                lambda amount: self._lcd.write(
+                        "Fnordload VLDTR Menu",
+                        "Balance: % 7.02f" % balance,
+                        "Amount: % 5.0f Euro" % amount, ""))
+
+        if amount > 0:
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "Balance: % 7.02f" % balance,
+                            "Amount: % 5.0f Euro" % amount,
+                            "PROCESSING...")
+            self._note_handler.load(account_name, amount);
+            balance = self._note_handler.account_value(account_name)
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "%s Balance:" % account_name_ui,
+                            "% 7.02f Euro" % balance, "")
+            self._keypad.get_single_key(accepted_keys = ['*'])
 
     def _remove_notes(self):
-        pass
+        account_name, account_name_ui = self._choose_account("Fnordload VLDTR Menu")
+
+        balance = self._note_handler.account_value(account_name)
+        amount = self._ui.input_number(0,
+                lambda amount: self._lcd.write(
+                        "Fnordload VLDTR Menu",
+                        "Balance: % 7.02f" % balance,
+                        "Amount: % 5.0f Euro" % amount, ""))
+
+        if amount > balance:
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "",
+                            "Amount Not Available", "")
+            time.sleep(5)
+            return
+
+        if amount > 0:
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "Balance: % 7.02f" % balance,
+                            "Amount: % 5.0f Euro" % amount,
+                            "PROCESSING...")
+            self._note_handler.payout(account_name, amount);
+            balance = self._note_handler.account_value(account_name)
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "%s Balance:" % account_name_ui,
+                            "% 7.02f Euro" % balance, "")
+            self._keypad.get_single_key(accepted_keys = ['*'])
 
     def _statistics_show_account_balances(self):
         self._lcd.write("Fnordload STAT Menu",
                 "Hopper: %d Coins" % self._coin_hopper.coin_level,
                 "UPAY  : % 7.02f Euro" % self._note_handler.account_value("upay"),
-                "Change: % 7.02f Euro"%self._note_handler.account_value("change"))
+                "Change: % 7.02f Euro" % self._note_handler.account_value("change"))
         self._keypad.get_single_key(accepted_keys = ['*'])
 
     def _load_coins(self):
-        coins = self._ui.input_number(0, lambda coins: self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d Coins" % coins, ""))
+        coins = self._ui.input_number(0, lambda coins: self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, ""))
 
-        self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d Coins" % coins, "WRITING")
+        self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, "WRITING")
         self._coin_hopper.increase_coin_level(coins)
-        self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d Coins" % coins, "DONE")
+        self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, "DONE")
         time.sleep(2)
-        self._lcd.write("Fnordload MGT Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
+        self._lcd.write("Fnordload MGT  Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
         time.sleep(2)
 
     def _give_coins(self):
         coins = self._coin_hopper.coin_level
-        coins = self._ui.input_number(coins, lambda coins: self._lcd.write("Fnordload MGT Menu", "Give Coins", "Amount: %d Coins" % coins, ""))
+        coins = self._ui.input_number(coins, lambda coins: self._lcd.write("Fnordload MGT  Menu", "Give Coins", "Amount: %d Coins" % coins, ""))
 
-        self._lcd.write("Fnordload MGT Menu", "Give Coins", "Amount: %d Coins" % coins, "Please Wait")
+        self._lcd.write("Fnordload MGT  Menu", "Give Coins", "Amount: %d Coins" % coins, "Please Wait")
         self._coin_hopper.payout(coins * self._coin_hopper.coin_type)
-        self._lcd.write("Fnordload MGT Menu", "Give Coins", "Amount: %d Coins" % coins, "DONE")
+        self._lcd.write("Fnordload MGT  Menu", "Give Coins", "Amount: %d Coins" % coins, "DONE")
         time.sleep(2)
-        self._lcd.write("Fnordload MGT Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
+        self._lcd.write("Fnordload MGT  Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
         time.sleep(2)
 
     def _upay_show_balance(self):
