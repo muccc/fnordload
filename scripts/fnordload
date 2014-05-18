@@ -12,6 +12,11 @@ import sys
 
 from decimal import Decimal
 
+class Exit(Exception):
+    @classmethod
+    def throw(cls):
+        raise cls()
+
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
             cointype = 0.5, code = '00000'):
@@ -28,6 +33,13 @@ class Fnordload(object):
     def _setup(self):
         self._lcd.setup()
 
+    def _run_sub_menu(self, name, menu):
+        try:
+            while True:
+                self._ui.choose(name, menu)
+        except Exit:
+            pass
+ 
     def main(self):
         main_menu = (
             {'key': 1, 'name': "Give Change",  'function': self._give_change,   'visible': True},
@@ -36,7 +48,7 @@ class Fnordload(object):
         )
         while True:
             try:
-                self._ui.choose("Fnordload Main Menu", main_menu)
+                self._ui.choose("Fnordload MAIN  Menu", main_menu)
             except fnordload.TimeoutError:
                 pass
 
@@ -57,36 +69,74 @@ class Fnordload(object):
                 break
 
     def _manage_menu(self):
-        manage_menu = (
-            {'key': 1,      'name': "Load Coins", 'function': self._load_coins,       'visible': True},
-            {'key': 2,      'name': "Give Coins", 'function': self._give_coins,       'visible': True},
-            {'key': 3,      'name': "Statistics", 'function': self._statistics_menu,  'visible': True},
-            {'key': '*',    'name': "Exit",       'function': lambda: None,           'visible': False},
+        menu = (
+            {'key': 1,  'name': "Actions",      'function': self._manage_actions_menu,  'visible': True },
+            {'key': 2,  'name': "Devices",      'function': self._manage_devices_menu,  'visible': True },
+            {'key': 3,  'name': "Statistics",   'function': self._statistics_menu,      'visible': True },
+            {'key': '*','name': "Exit",         'function': lambda: Exit.throw(),       'visible': False},
         )
-        while True:
-            self._ui.choose("Fnordload MGT Menu", manage_menu)
+        self._run_sub_menu("Fnordload MGT  Menu", menu)
+
+    def _manage_actions_menu(self):
+        menu = (
+            {'key': 1,  'name': "Refill Hopper",    'function': self._refill_hopper,    'visible': True },
+            {'key': '*','name': "Exit",             'function': lambda: Exit.throw(),   'visible': False},
+        )
+        self._run_sub_menu("Fnordload ACTN  Menu", menu)
+
+    def _manage_devices_menu(self):
+        menu = (
+            {'key': 1,  'name': "Hopper",       'function': self._manage_hopper_menu,       'visible': True },
+            {'key': 2,  'name': "Validator",    'function': self._manage_validator_menu,    'visible': True },
+            {'key': 3,  'name': "Printer",      'function': self._not_implemented,          'visible': True },
+            {'key': '*','name': "Exit",         'function': lambda: Exit.throw(),           'visible': False},
+        )
+        self._run_sub_menu("Fnordload DEVS  Menu", menu)
+
+    def _manage_hopper_menu(self):
+        menu = (
+            {'key': 1,  'name': "Load Coins", 'function': self._load_coins,         'visible': True },
+            {'key': 2,  'name': "Give Coins", 'function': self._give_coins,         'visible': True },
+            {'key': '*','name': "Exit",       'function': lambda: Exit.throw(),     'visible': False},
+        )
+        self._run_sub_menu("Fnordload HOPPR Menu", menu)
+
+    def _manage_validator_menu(self):
+        menu = (
+            {'key': 1,  'name': "Load Notes",   'function': self._load_notes,       'visible': True },
+            {'key': 2,  'name': "Get Notes",    'function': self._remove_notes,     'visible': True },
+            {'key': '*','name': "Exit",         'function': lambda: Exit.throw(),   'visible': False},
+        )
+        self._run_sub_menu("Fnordload VLDTR Menu", menu)
 
     def _upay_menu(self):
-        upay_menu = (
+        menu = (
             {'key': 1,      'name': "Show Balance",     'function': self._upay_show_balance,    'visible': True},
             {'key': 2,      'name': "Get Tokens",       'function': self._upay_get_tokens,      'visible': True},
             {'key': 3,      'name': "Normalize Purse",  'function': self._not_implemented,      'visible': True},
             {'key': '*',    'name': "Exit",             'function': lambda: None,               'visible': False},
         )
-
-        self._ui.choose("Fnordload UPAY Menu", upay_menu)
+        self._ui.choose("Fnordload UPAY  Menu", menu)
 
     def _statistics_menu(self):
-        statistics_menu = (
-            {'key': 1,      'name': "Account Balances", 'function': self._statistics_show_account_balances,     'visible': True},
-            {'key': '*',    'name': "Exit",             'function': lambda: None,                               'visible': False},
+        menu = (
+            {'key': 1,  'name': "Account Balances", 'function': self._statistics_show_account_balances, 'visible': True},
+            {'key': '*','name': "Exit",             'function': lambda: Exit.throw(),                   'visible': False},
         )
-
-        self._ui.choose("Fnordload STAT Menu", statistics_menu)
+        self._run_sub_menu("Fnordload STATS Menu", menu)
 
     def _not_implemented(self):
         self._lcd.write("Fnordload", "", "Not Yet Implemented", "             The MGT")
         time.sleep(5)
+
+    def _refill_hopper(self):
+        pass
+
+    def _load_notes(self):
+        pass
+
+    def _remove_notes(self):
+        pass
 
     def _statistics_show_account_balances(self):
         self._lcd.write("Fnordload STAT Menu",
