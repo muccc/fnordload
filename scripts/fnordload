@@ -60,10 +60,11 @@ class Fnordload(object):
         manage_menu = (
             {'key': 1,      'name': "Load Coins", 'function': self._load_coins,       'visible': True},
             {'key': 2,      'name': "Give Coins", 'function': self._give_coins,       'visible': True},
+            {'key': 3,      'name': "Statistics", 'function': self._statistics_menu,  'visible': True},
             {'key': '*',    'name': "Exit",       'function': lambda: None,           'visible': False},
         )
-
-        self._ui.choose("Fnordload MGT Menu", manage_menu)
+        while True:
+            self._ui.choose("Fnordload MGT Menu", manage_menu)
 
     def _upay_menu(self):
         upay_menu = (
@@ -75,9 +76,24 @@ class Fnordload(object):
 
         self._ui.choose("Fnordload UPAY Menu", upay_menu)
 
+    def _statistics_menu(self):
+        statistics_menu = (
+            {'key': 1,      'name': "Account Balances", 'function': self._statistics_show_account_balances,     'visible': True},
+            {'key': '*',    'name': "Exit",             'function': lambda: None,                               'visible': False},
+        )
+
+        self._ui.choose("Fnordload STAT Menu", statistics_menu)
+
     def _not_implemented(self):
         self._lcd.write("Fnordload", "", "Not Yet Implemented", "             The MGT")
         time.sleep(5)
+
+    def _statistics_show_account_balances(self):
+        self._lcd.write("Fnordload STAT Menu",
+                "Hopper: %d Coins" % self._coin_hopper.coin_level,
+                "UPAY  : % 7.02f Euro" % self._note_handler.account_value("upay"),
+                "Change: % 7.02f Euro"%self._note_handler.account_value("change"))
+        self._keypad.get_single_key(accepted_keys = ['*'])
 
     def _load_coins(self):
         coins = self._ui.input_number(0, lambda coins: self._lcd.write("Fnordload MGT Menu", "Load Coins", "Amount: %d Coins" % coins, ""))
