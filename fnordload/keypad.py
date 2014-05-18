@@ -32,7 +32,7 @@ class KeyPad(object):
             time.sleep(scan_time)
         return pressed_keys
 
-    def get_single_key(self, timeout = 30):
+    def get_single_key(self, accepted_keys = MAPPING, timeout = 30):
         t0 = time.time()
         key = None
         all_released_counter = 0
@@ -48,7 +48,7 @@ class KeyPad(object):
 
             all_released_counter += 1
 
-            if len(keys) == 1:
+            if len(keys) == 1 and keys[0] in accepted_keys:
                 key = keys[0]
                 break
 
