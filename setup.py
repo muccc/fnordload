@@ -20,5 +20,5 @@ setup(
     keywords='upay',
     license='GPLv3+',
     install_requires=['max7301', 'lcdproc', 'pyserial'],
-    scripts=['scripts/fnordload', 'scripts/fnordload-empty']
+    scripts=['scripts/fnordload']
 )

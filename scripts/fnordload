@@ -2,117 +2,357 @@
 
 import fnordload
 import time
-import eSSP.eSSP
-import max7301
 import signal
 import sys
 import logging
 import logging.handlers
+import max7301
+import nupay
+import sys
+
+from decimal import Decimal
+
+class Exit(Exception):
+    @classmethod
+    def throw(cls):
+        raise cls()
 
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
-            inhibits = [0, 0, 0, 0, 0, 0, 0, 0], cointype = 0.5, payoutIn1 = 4,
-            payoutIn2 = 5, payoutIn3 = 6):
-        self.__logger = logging.getLogger('logger')
-        self.__LCD = fnordload.LCD(LCDserver)
-        self.__eSSP = eSSP.eSSP.eSSP(eSSPport)
-        self.__cointype = cointype
-        self.__inhibits = inhibits
-        self.__iodevice = max7301.MAX7301()
-        self.__payoutIn1 = payoutIn1
-        self.__payoutIn2 = payoutIn2
-        self.__payoutIn3 = payoutIn3
-        self.setup()
+            cointype = 0.5, code = '00000'):
+        self._logger = logging.getLogger('logger')
+        self._lcd = fnordload.LCD(LCDserver)
+        self._io_device = max7301.MAX7301()
+        self._keypad = fnordload.KeyPad(self._io_device)
+        self._note_handler = fnordload.NoteHandler(device = eSSPport)
+        self._coin_hopper = fnordload.CoinHopper(cointype, io_device = self._io_device)
+        self._ui = fnordload.UI(keypad = self._keypad, lcd = self._lcd)
+        self._code = code
+        self._setup()
 
-    def setup(self):
-        self.__LCD.setup()
-        self.__eSSP.sync()
-        self.__eSSP.enable_higher_protocol()
-        self.__channelvalues = self.__eSSP.channel_values()[1]
-        self.set_coinlevelinhibits()
-        self.__iodevice.set_pin_as_output(self.__payoutIn1)
-        self.__iodevice.set_pin_as_output(self.__payoutIn2)
-        self.__iodevice.set_pin_as_output(self.__payoutIn3)
-        self.payout_reset()
-        self.__iodevice.set_pin(self.__payoutIn3, 1)
+    def _setup(self):
+        self._lcd.setup()
 
-    def set_inhibits(self, inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
-        self.__inhibits = inhibits
-        self.__eSSP.set_inhibits(self.__eSSP.easy_inhibit(inhibits), '0x00')
-
-    def write_coinlevel(self, newlevel):
-        f = open('coins', 'w')
-        f.write(str(newlevel))
-        f.close()
-        import ctypes
-        ctypes.CDLL("libc.so.6").sync()
-        self.set_coinlevelinhibits()
-
-    def set_coinlevelinhibits(self):
-        f = open('coins', 'r')
-        self.__coins = int(f.read())
-        f.close()
-
-        newinhibits = []
-        for channelvalue, oldinhibit in zip(self.__channelvalues, self.__inhibits):
-            if (self.__coins - (channelvalue / self.__cointype) >= 0 and oldinhibit != 0):
-                newinhibits.append(1)
-            else:
-                newinhibits.append(0)
-
-        self.set_inhibits(newinhibits)
-    
-    def payout(self, value):
-        payoutcoins = int(value / self.__cointype)
-        self.__logger.info("Payout of " + str(payoutcoins) + " Coins")
-        self.write_coinlevel(self.__coins - payoutcoins);
-        self.__LCD.payout_in_progress()
-        for i in range(0, payoutcoins):
-            self.__iodevice.set_pin(self.__payoutIn3, 0)
-            time.sleep(0.1)
-            self.__iodevice.set_pin(self.__payoutIn3, 1)
-            time.sleep(0.1)
-        self.__eSSP.enable()
-        self.welcome()
-
-    def welcome(self):
-        self.__LCD.welcome(self.__inhibits, self.__channelvalues)
+    def _run_sub_menu(self, name, menu):
+        try:
+            while True:
+                self._ui.choose(name, menu)
+        except Exit:
+            pass
 
     def main(self):
-        self.welcome()
-        self.__eSSP.enable()
+        main_menu = (
+            {'name': "Give Change", 'function': self._give_change,      'visible': True},
+            {'name': "UPAY",        'function': self._upay_menu,        'visible': True},
+            {'name': "Statistics",  'function': self._statistics_menu,  'visible': True},
+            {'name': "Manage",      'function': self._manage,           'visible': True},
+        )
 
         while True:
-            poll = self.__eSSP.poll()
+            try:
+                self._ui.choose("Fnordload MAIN  Menu", main_menu)
+            except fnordload.TimeoutError:
+                pass
 
-            if (len(poll) > 1 and len(poll[1]) == 2 and poll[1][0] == '0xef'):
-                if (poll[1][1] == 0):
-                    self.__LCD.reading_note()
+    def _manage(self):
+        self._lcd.write("Fnordload MGT  Menu", "", "Enter Code", "             The MGT")
+        input = ''
+
+        while True:
+            k = self._keypad.get_single_key()
+            if k != '#':
+                input += str(k)
+            else:
+                if self._code == input:
+                    self._manage_menu()
                 else:
-                    self.__eSSP.hold()
-                    self.__LCD.reading_note(str(self.__channelvalues[poll[1][1] - 1]))
-            elif (len(poll) > 1 and len(poll[1]) == 2 and poll[1][0] == '0xee'):
-                self.__LCD.cashed_note(str(self.__channelvalues[poll[1][1] - 1]))
-                self.__eSSP.disable()
-                self.payout(self.__channelvalues[poll[1][1] - 1])
-            elif (len(poll) > 1 and poll[1] == '0xed'):
-                self.__LCD.rejected_note()
-                time.sleep(2)
-                self.welcome()
-            elif (len(poll) > 1 and poll[0] == '0xf0'):
-                self.__logger.warning(str(poll))
+                    self._lcd.write("Fnordload MGT  Menu", "", "Wrong Code", "             The MGT")
+                    time.sleep(5)
+                break
 
-            time.sleep(0.5)
-    
-    def payout_reset(self):
-        self.__iodevice.set_pin(self.__payoutIn1, 0)
-        self.__iodevice.set_pin(self.__payoutIn2, 1)
-        time.sleep(0.5)
-        self.__iodevice.set_pin(self.__payoutIn1, 1)
-        self.__iodevice.set_pin(self.__payoutIn2, 0)
+    def _manage_menu(self):
+        menu = (
+            {'name': "Actions",     'function': self._manage_actions_menu,  'visible': True },
+            {'name': "Devices",     'function': self._manage_devices_menu,  'visible': True },
+            {'name': "Exit",        'function': lambda: Exit.throw(),       'visible': False, 'key': '*'},
+        )
+        self._run_sub_menu("Fnordload MGT  Menu", menu)
+
+    def _manage_actions_menu(self):
+        menu = (
+            {'name': "Refill Hopper",   'function': self._refill_hopper,    'visible': True },
+            {'name': "Exit",            'function': lambda: Exit.throw(),   'visible': False, 'key': '*'},
+        )
+        self._run_sub_menu("Fnordload ACTN  Menu", menu)
+
+    def _manage_devices_menu(self):
+        menu = (
+            {'name': "Hopper",      'function': self._manage_hopper_menu,       'visible': True },
+            {'name': "Validator",   'function': self._manage_validator_menu,    'visible': True },
+            {'name': "Printer",     'function': self._not_implemented,          'visible': True },
+            {'name': "Exit",        'function': lambda: Exit.throw(),           'visible': False, 'key': '*'},
+        )
+        self._run_sub_menu("Fnordload DEVS  Menu", menu)
+
+    def _manage_hopper_menu(self):
+        menu = (
+            {'name': "Load Coins",  'function': self._load_coins,       'visible': True },
+            {'name': "Give Coins",  'function': self._give_coins,       'visible': True },
+            {'name': "Exit",        'function': lambda: Exit.throw(),   'visible': False, 'key': '*'},
+        )
+        self._run_sub_menu("Fnordload HOPPR Menu", menu)
+
+    def _manage_validator_menu(self):
+        menu = (
+            {'name': "Load Notes",  'function': self._load_notes,       'visible': True },
+            {'name': "Get Notes",   'function': self._remove_notes,     'visible': True },
+            {'name': "Exit",        'function': lambda: Exit.throw(),   'visible': False, 'key': '*'},
+        )
+        self._run_sub_menu("Fnordload VLDTR Menu", menu)
+
+    def _upay_menu(self):
+        menu = (
+            {'name': "Show Balance",    'function': self._upay_show_balance,    'visible': True},
+            {'name': "Get Tokens",      'function': self._upay_get_tokens,      'visible': True},
+            {'name': "Normalize Purse", 'function': self._not_implemented,      'visible': True},
+            {'name': "Exit",            'function': lambda: None,               'visible': False, 'key': '*'},
+        )
+        self._ui.choose("Fnordload UPAY  Menu", menu)
+
+    def _statistics_menu(self):
+        menu = (
+            {'name': "Account Balances",    'function': self._statistics_show_account_balances, 'visible': True},
+            {'name': "UPAY",                'function': self._statistics_upay,                  'visible': True},
+            {'name': "Exit",                'function': lambda: Exit.throw(),                   'visible': False, 'key': '*'},
+        )
+        self._run_sub_menu("Fnordload STATS Menu", menu)
+
+    def _not_implemented(self):
+        self._lcd.write("Fnordload", "", "Not Yet Implemented", "             The MGT")
+        time.sleep(5)
+
+    def _refill_hopper(self):
+        pass
+
+    def _choose_account(self, header):
+        upay_balance = self._note_handler.account_value('upay')
+        change_balance = self._note_handler.account_value('change')
+        self._lcd.write(header,
+                        "Choose account",
+                        "1: UPAY (% 7.02f)" % upay_balance,
+                        "2: Change(% 7.02f)" % change_balance)
+
+        key = self._keypad.get_single_key(accepted_keys = [1, 2, '*'])
+        if key == '*':
+            return
+
+        account_name = 'upay'
+        account_name_ui = 'UPAY'
+        if key == 2:
+            account_name = 'change'
+            account_name_ui = 'Change'
+
+        return (account_name, account_name_ui)
+
+    def _load_notes(self):
+        account_name, account_name_ui = self._choose_account("Fnordload VLDTR Menu")
+
+        balance = self._note_handler.account_value(account_name)
+        amount = self._ui.input_number(0,
+                lambda amount: self._lcd.write(
+                        "Fnordload VLDTR Menu",
+                        "Balance: % 7.02f" % balance,
+                        "Amount: % 5.0f Euro" % amount, ""))
+
+        if amount > 0:
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "Balance: % 7.02f" % balance,
+                            "Amount: % 5.0f Euro" % amount,
+                            "PROCESSING...")
+            self._note_handler.load(account_name, amount);
+            balance = self._note_handler.account_value(account_name)
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "%s Balance:" % account_name_ui,
+                            "% 7.02f Euro" % balance, "")
+            self._keypad.get_single_key(accepted_keys = ['*'])
+
+    def _remove_notes(self):
+        account_name, account_name_ui = self._choose_account("Fnordload VLDTR Menu")
+
+        balance = self._note_handler.account_value(account_name)
+        amount = self._ui.input_number(0,
+                lambda amount: self._lcd.write(
+                        "Fnordload VLDTR Menu",
+                        "Balance: % 7.02f" % balance,
+                        "Amount: % 5.0f Euro" % amount, ""))
+
+        if amount > balance:
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "",
+                            "Amount Not Available", "")
+            time.sleep(5)
+            return
+
+        if amount > 0:
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "Balance: % 7.02f" % balance,
+                            "Amount: % 5.0f Euro" % amount,
+                            "PROCESSING...")
+            self._note_handler.payout(account_name, amount);
+            balance = self._note_handler.account_value(account_name)
+            self._lcd.write("Fnordload VLDTR Menu",
+                            "%s Balance:" % account_name_ui,
+                            "% 7.02f Euro" % balance, "")
+            self._keypad.get_single_key(accepted_keys = ['*'])
+
+    def _statistics_show_account_balances(self):
+        self._lcd.write("Fnordload STAT Menu",
+                "Hopper: %d Coins" % self._coin_hopper.coin_level,
+                "UPAY  : % 7.02f Euro" % self._note_handler.account_value("upay"),
+                "Change: % 7.02f Euro" % self._note_handler.account_value("change"))
+        self._keypad.get_single_key(accepted_keys = ['*'])
+
+    def _statistics_upay(self):
+        pass
+
+    def _load_coins(self):
+        coins = self._ui.input_number(0, lambda coins: self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, ""))
+
+        self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, "WRITING")
+        self._coin_hopper.increase_coin_level(coins)
+        self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, "DONE")
+        time.sleep(2)
+        self._lcd.write("Fnordload MGT  Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
+        time.sleep(2)
+
+    def _give_coins(self):
+        coins = self._coin_hopper.coin_level
+        coins = self._ui.input_number(coins, lambda coins: self._lcd.write("Fnordload MGT  Menu", "Give Coins", "Amount: %d Coins" % coins, ""))
+
+        self._lcd.write("Fnordload MGT  Menu", "Give Coins", "Amount: %d Coins" % coins, "Please Wait")
+        self._coin_hopper.payout(coins * self._coin_hopper.coin_type)
+        self._lcd.write("Fnordload MGT  Menu", "Give Coins", "Amount: %d Coins" % coins, "DONE")
+        time.sleep(2)
+        self._lcd.write("Fnordload MGT  Menu", "New Coin Level", "%d Coins" % self._coin_hopper.coin_level, "")
+        time.sleep(2)
+
+    def _upay_show_balance(self):
+        token_reader = nupay.USBTokenReader()
+        t0 = time.time()
+
+        self._lcd.write("Fnordload UPAY", "", "Please insert your", "USB drive")
+
+        tokens = []
+        while time.time() < t0 + 30:
+            try:
+                tokens = token_reader.read_tokens(
+                            found_medium_callback =
+                                lambda x: self._lcd.write("Fnordload UPAY", "", "Reading USB drive", ""))
+                break
+            except nupay.NoTokensAvailableError:
+                time.sleep(1)
+
+        if not tokens:
+            self._lcd.write("Fnordload UPAY", "", "No valid purse found", "")
+            time.sleep(5)
+            return
+
+        self._lcd.write("Fnordload UPAY", "", "Validating tokens", "")
+        token_client = nupay.TokenClient()
+        tokens = token_client.validate_tokens(tokens)
+        value = sum([token.value for token in tokens])
+
+        self._lcd.write("Fnordload UPAY", "", "Read %d tokens" % len(tokens), "Value: %.2f Euro" % value)
+        time.sleep(5)
+
+    def _upay_get_tokens(self):
+        self._lcd.write("Fnordload UPAY", "", "Reading internal", "purse...")
+        local_tokens = nupay.read_tokens_from_file('local-purse', max_tokens = 100, max_size = 300 * 1024)
+        token_client = nupay.TokenClient()
+
+        self._lcd.write("Fnordload UPAY", "", "Validating internal", "purse...")
+        local_tokens = token_client.validate_tokens(local_tokens)
+
+        available_amount = sum([t.value for t in local_tokens])
+        self._note_handler.set_max_accepted_value(available_amount)
+
+        accepted_values = [str(x) for x in self._note_handler.get_accepted_values()]
+
+        if (len(accepted_values) == 0):
+            self._lcd.write("Fnordload UPAY", "No tokens available", "", "             The MGT")
+            time.sleep(5)
+            return
+
+        class local:
+            purse_path = None
+        def found_usb_drive(path):
+            self._lcd.write("Fnordload UPAY", "", "Reading USB drive", "")
+            local.purse_path = path
+
+        token_reader = nupay.USBTokenReader()
+        t0 = time.time()
+        self._lcd.write("Fnordload UPAY", "", "Please insert your", "USB drive")
+
+        tokens = []
+        while time.time() < t0 + 30:
+            try:
+                tokens = token_reader.read_tokens(found_medium_callback = found_usb_drive)
+            except nupay.NoTokensAvailableError:
+                time.sleep(1)
+
+            if local.purse_path:
+                break
+
+        if not local.purse_path:
+            self._lcd.write("Fnordload UPAY", "", "No purse file found", "")
+            time.sleep(5)
+            return
+
+        self._lcd.write("Fnordload UPAY", "Accepting (Euro):", ", ".join(accepted_values),"        Insert money")
+
+        try:
+            amount = self._note_handler.read_note('upay')
+        except fnordload.InvalidNoteError:
+            self._lcd.rejected_note()
+            time.sleep(2)
+            return
+
+        new_token_values = [Decimal(0.5)] * (amount * 2)
+        new_tokens = token_client.create_tokens(new_token_values)
+        local_tokens = local_tokens[0:amount * 2]
+
+        token_client.transform_tokens(local_tokens, new_tokens)
+
+        with open(local.purse_path, 'a') as f:
+            f.writelines([str(token)+'\n' for token in new_tokens])
+
+        self._upay_show_balance()
+
+    def _give_change(self):
+        self._note_handler.set_max_accepted_value(
+                self._coin_hopper.coin_level *
+                self._coin_hopper.coin_type)
+
+        accepted_values = self._note_handler.get_accepted_values()
+        self._lcd.show_accepted_values(accepted_values)
+
+        if not accepted_values:
+            time.sleep(5)
+            return
+
+        try:
+            amount = self._note_handler.read_note('change')
+            self._coin_hopper.payout(amount)
+        except fnordload.InvalidNoteError:
+            self._lcd.rejected_note()
+            time.sleep(2)
+        except fnordload.TimeoutError:
+            pass
 
     def exit_handler(self, signal, frame):
-        self.payout_reset()
+        self._coin_hopper.reset()
+        self._note_handler.exit()
+
         sys.exit(0)
 
 if __name__ == "__main__":
@@ -126,9 +366,9 @@ if __name__ == "__main__":
     logger.addHandler(handler)
 
     logger.info('Starting fnordload')
-    
+
     try:
-        fl = Fnordload(inhibits = [1, 1, 1, 0, 0, 0])
+        fl = Fnordload(code = sys.argv[1])
         signal.signal(signal.SIGINT, fl.exit_handler)
 
         while True:
@@ -138,5 +378,7 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         sys.exit(1)
-    
+
     sys.exit(0)
+
+

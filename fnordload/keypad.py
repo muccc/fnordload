@@ -3,6 +3,7 @@
 import time
 import max7301
 import logging
+import fnordload
 
 class KeyPad(object):
     INPUT_ROW_PINS = [12, 13, 18, 17]
@@ -31,11 +32,33 @@ class KeyPad(object):
             time.sleep(scan_time)
         return pressed_keys
 
-        
+    def get_single_key(self, accepted_keys = MAPPING, timeout = 30):
+        t0 = time.time()
+        key = None
+        all_released_counter = 0
+
+        while True:
+            if time.time() > t0 + timeout:
+                raise fnordload.TimeoutError("No key pressed")
+
+            keys = self.scan()
+            if all_released_counter < 1 and keys:
+                all_released_counter = 0
+                continue
+
+            all_released_counter += 1
+
+            if len(keys) == 1 and keys[0] in accepted_keys:
+                key = keys[0]
+                break
+
+        return key
+
+
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.INFO)
     iodevice = max7301.MAX7301()
     k = KeyPad(iodevice)
     while 1:
-        print k.scan()
+        print k.get_single_key()
 

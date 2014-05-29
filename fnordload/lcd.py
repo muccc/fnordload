@@ -28,17 +28,13 @@ class LCD(object):
     def setup(self):
         self.write("Fnordload booting", "", "Please stand by...")
 
-    def welcome(self, inhibits, values):
-        accepted = []
-        for value, inhibit in zip(values, inhibits):
-            if (inhibit == 1):
-                accepted.append(str(value))
-        
+    def show_accepted_values(self, values):
+        accepted = [str(x) for x in values]
+
         if (len(accepted) == 0):
-            self.out_of_order()
+            self.write("Sorry!","No change available", "", "             The MGT")
         else:
-            self.__screen.set_backlight("on")
-            self.write("Welcome to Fnordload", "Accpeting (Euro):", ", ".join(accepted),"        Insert money")
+            self.write("Giving Change", "Accepting (Euro):", ", ".join(accepted),"        Insert money")
 
     def out_of_order(self):
         self.write("Sorry!","Fnordload is currently", "out of order.", "             The MGT")
@@ -62,5 +58,5 @@ class LCD(object):
         self.write("Payout in Progress", "", "", "Please stand by")
 
     def rejected_note(self):
-        self.__screen.set_backlight("flash")
+        #self.__screen.set_backlight("flash")
         self.write("Sorry, this note", "cannot be accepted" , "at this time.")
