@@ -3,6 +3,7 @@ from . import account
 
 class NoteHandler(NoteValidator):
     def __init__(self, *args, **kwargs):
+        self._logger = logging.getLogger(__name__)
         NoteValidator.__init__(self, *args, **kwargs)
         self._accounts = {}
     #def __init__(inhibits = [1, 1, 1, 0, 0, 0])

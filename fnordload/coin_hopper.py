@@ -6,7 +6,7 @@ from . import account
 class CoinHopper(object):
     def __init__(self, cointype, io_device, payoutIn1 = 4,
                  payoutIn2 = 5, payoutIn3 = 6):
-        self._logger = logging.getLogger('logger')
+        self._logger = logging.getLogger(__name__)
 
         self._cointype = cointype
         self._iodevice = io_device
@@ -43,8 +43,10 @@ class CoinHopper(object):
             time.sleep(0.1)
             self._iodevice.set_pin(self._payoutIn3, 1)
             time.sleep(0.1)
+        self._logger.info("Payout done")
 
     def reset(self):
+        self._logger.info("Resetting hopper")
         self._iodevice.set_pin(self._payoutIn1, 0)
         self._iodevice.set_pin(self._payoutIn2, 1)
         time.sleep(0.5)

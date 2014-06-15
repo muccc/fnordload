@@ -3,7 +3,7 @@ import logging
 
 class LCD(object):
     def __init__(self, server = "localhost", debug = False):
-        self.__logger = logging.getLogger('logger')
+        self._logger = logging.getLogger(__name__)
         self.__lcd = Server(server, debug=debug)
         self.__lcd.start_session()
         self.__screen = self.__lcd.add_screen("screen")
@@ -23,7 +23,7 @@ class LCD(object):
         self.__line3.set_text(line3)
         self.__line4.set_text(line4)
 
-        self.__logger.info(line1 + ' | ' + line2 + ' | ' + line3 + ' | ' + line4)
+        self._logger.info(line1 + ' | ' + line2 + ' | ' + line3 + ' | ' + line4)
 
     def setup(self):
         self.write("Fnordload booting", "", "Please stand by...")

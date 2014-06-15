@@ -5,6 +5,7 @@ import time
 import signal
 import sys
 import logging
+import logging.config
 import logging.handlers
 import max7301
 import nupay
@@ -20,7 +21,7 @@ class Exit(Exception):
 class Fnordload(object):
     def __init__(self, LCDserver = 'localhost', eSSPport = '/dev/ttyACM0',
             cointype = 0.5, code = '00000'):
-        self._logger = logging.getLogger('logger')
+        self._logger = logging.getLogger(__name__)
         self._lcd = fnordload.LCD(LCDserver)
         self._io_device = max7301.MAX7301()
         self._keypad = fnordload.KeyPad(self._io_device)
@@ -66,11 +67,13 @@ class Fnordload(object):
                 if self._code == input:
                     self._manage_menu()
                 else:
+                    self._logger.warning('Wrong management menu code entered.')
                     self._lcd.write("Fnordload MGT  Menu", "", "Wrong Code", "             The MGT")
                     time.sleep(5)
                 break
 
     def _manage_menu(self):
+        self._logger.info('Entered management menu')
         menu = (
             {'name': "Actions",     'function': self._manage_actions_menu,  'visible': True },
             {'name': "Devices",     'function': self._manage_devices_menu,  'visible': True },
@@ -152,9 +155,11 @@ class Fnordload(object):
             account_name = 'change'
             account_name_ui = 'Change'
 
+        self._logger.info("Account %s selected" % account_name)
         return (account_name, account_name_ui)
 
     def _load_notes(self):
+        self._logger.info("Entered load notes menu")
         account_name, account_name_ui = self._choose_account("Fnordload VLDTR Menu")
 
         balance = self._note_handler.account_value(account_name)
@@ -177,6 +182,7 @@ class Fnordload(object):
             self._keypad.get_single_key(accepted_keys = ['*'])
 
     def _remove_notes(self):
+        self._logger.info("Entered remove notes menu")
         account_name, account_name_ui = self._choose_account("Fnordload VLDTR Menu")
 
         balance = self._note_handler.account_value(account_name)
@@ -216,6 +222,7 @@ class Fnordload(object):
         pass
 
     def _load_coins(self):
+        self._logger.info("Entered load coins menu")
         coins = self._ui.input_number(0, lambda coins: self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, ""))
 
         self._lcd.write("Fnordload MGT  Menu", "Load Coins", "Amount: %d Coins" % coins, "WRITING")
@@ -226,6 +233,7 @@ class Fnordload(object):
         time.sleep(2)
 
     def _give_coins(self):
+        self._logger.info("Entered give coins menu")
         coins = self._coin_hopper.coin_level
         coins = self._ui.input_number(coins, lambda coins: self._lcd.write("Fnordload MGT  Menu", "Give Coins", "Amount: %d Coins" % coins, ""))
 
@@ -266,6 +274,7 @@ class Fnordload(object):
         time.sleep(5)
 
     def _upay_get_tokens(self):
+        self._logger.info("Entered get tokens menu")
         self._lcd.write("Fnordload UPAY", "", "Reading internal", "purse...")
         local_tokens = nupay.read_tokens_from_file('local-purse', max_tokens = 100, max_size = 300 * 1024)
         token_client = nupay.TokenClient()
@@ -279,6 +288,7 @@ class Fnordload(object):
         accepted_values = [str(x) for x in self._note_handler.get_accepted_values()]
 
         if (len(accepted_values) == 0):
+            self._logger.warning("No tokens available")
             self._lcd.write("Fnordload UPAY", "No tokens available", "", "             The MGT")
             time.sleep(5)
             return
@@ -304,6 +314,7 @@ class Fnordload(object):
                 break
 
         if not local.purse_path:
+            self._logger.info("No purse file found")
             self._lcd.write("Fnordload UPAY", "", "No purse file found", "")
             time.sleep(5)
             return
@@ -329,6 +340,7 @@ class Fnordload(object):
         self._upay_show_balance()
 
     def _give_change(self):
+        self._logger.info("Entered give change menu")
         self._note_handler.set_max_accepted_value(
                 self._coin_hopper.coin_level *
                 self._coin_hopper.coin_type)
@@ -337,6 +349,7 @@ class Fnordload(object):
         self._lcd.show_accepted_values(accepted_values)
 
         if not accepted_values:
+            self._logger.warning("Not enough coins available")
             time.sleep(5)
             return
 

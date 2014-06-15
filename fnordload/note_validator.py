@@ -12,7 +12,7 @@ class TimeoutError(Exception):
 
 class NoteValidator(object):
     def __init__(self, device = '/dev/ttyACM0', inhibits_mask = [1, 1, 1, 0, 0, 0]):
-        self._logger = logging.getLogger('logger')
+        self._logger = logging.getLogger(__name__)
         self._eSSP = eSSP.eSSP.eSSP(device)
         self._inhibits_mask = inhibits_mask
         self._inhibits = [0, 0, 0, 0, 0, 0]
@@ -32,11 +32,13 @@ class NoteValidator(object):
         self._thread.join()
 
     def _set_inhibits(self, inhibits = [0, 0, 0, 0, 0, 0, 0, 0]):
+        self._logger.info("New inhibits: %s" % str(inhibits))
         self._inhibits = inhibits
         with self._essp_lock:
             self._eSSP.set_inhibits(self._eSSP.easy_inhibit(inhibits), '0x00')
    
     def set_max_accepted_value(self, max_value):
+        self._logger.info("Set max accepted value: %f" % max_value)
         newinhibits = []
         for channelvalue, inhibit_mask in zip(self._channelvalues, self._inhibits_mask):
             if channelvalue <= max_value and  inhibit_mask:
@@ -48,9 +50,11 @@ class NoteValidator(object):
     
     def get_accepted_values(self):
         accepted = [x[0] for x in zip(self._channelvalues, self._inhibits) if x[1]]
+        self._logger.info("Max accepted value: %f" % accepted)
         return accepted
 
     def read_note(self, timeout = 30, message_callback = lambda x: None):
+        self._logger.info("Read note")
         self._reset_poll()
         t0 = time.time()
         with self._essp_lock:
@@ -66,10 +70,13 @@ class NoteValidator(object):
             elif len(poll) > 1 and len(poll[1]) == 2 and poll[1][0] == '0xee':
                 with self._essp_lock:
                     self._eSSP.disable()
-                return self._channelvalues[poll[1][1] - 1]
+                value = self._channelvalues[poll[1][1] - 1]
+                self._logger.info("Read note of value: %f" % value)
+                return value
             elif (len(poll) > 1 and poll[1] == '0xed'):
                 with self._essp_lock:
                     self._eSSP.disable()
+                self._logger.warning("Read invalid note")
                 raise InvalidNoteError()
             elif (len(poll) > 1 and poll[0] == '0xf0'):
                 self._logger.warning(str(poll))
@@ -77,6 +84,7 @@ class NoteValidator(object):
         with self._essp_lock:
             self._eSSP.disable()
 
+        self._logger.warning("Timeout while reading a note")
         raise TimeoutError()
 
     def _read_poll(self):
