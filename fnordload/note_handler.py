@@ -1,5 +1,6 @@
 from . import NoteValidator
 from . import account
+import logging
 
 class NoteHandler(NoteValidator):
     def __init__(self, *args, **kwargs):

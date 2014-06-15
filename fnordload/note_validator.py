@@ -50,7 +50,7 @@ class NoteValidator(object):
     
     def get_accepted_values(self):
         accepted = [x[0] for x in zip(self._channelvalues, self._inhibits) if x[1]]
-        self._logger.info("Max accepted value: %f" % accepted)
+        self._logger.info("Accepted values: %s" % str(accepted))
         return accepted
 
     def read_note(self, timeout = 30, message_callback = lambda x: None):
