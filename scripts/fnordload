@@ -356,15 +356,8 @@ class Fnordload(object):
         sys.exit(0)
 
 if __name__ == "__main__":
-    logger = logging.getLogger('logger')
-    logger.setLevel(logging.INFO)
-
-    logger_host = "83.133.178.69"
-    logger_port = 2325
-
-    handler = logging.handlers.SysLogHandler(address = (logger_host, logger_port), facility=19)
-    logger.addHandler(handler)
-
+    logging.config.fileConfig(sys.argv[2])
+    logger = logging.getLogger("fnordload")
     logger.info('Starting fnordload')
 
     try:
