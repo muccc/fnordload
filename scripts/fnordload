@@ -354,7 +354,8 @@ class Fnordload(object):
             return
 
         try:
-            amount = self._note_handler.read_note('change')
+            amount = self._note_handler.read_note('change', read_note_callback=self._lcd.thinking)
+            self._lcd.payout_in_progress()
             self._coin_hopper.payout(amount)
         except fnordload.InvalidNoteError:
             self._lcd.rejected_note()

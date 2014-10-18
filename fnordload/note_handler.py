@@ -16,8 +16,10 @@ class NoteHandler(NoteValidator):
          if account_name not in self._accounts:
             self._accounts[account_name] = account.Account(account_name)
        
-    def read_note(self, account_name):
+    def read_note(self, account_name, read_note_callback = None):
         amount = NoteValidator.read_note(self)
+        if read_note_callback:
+            read_note_callback()
         self.load(account_name, amount)
         return amount
 
