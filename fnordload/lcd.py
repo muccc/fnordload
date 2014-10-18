@@ -54,9 +54,11 @@ class LCD(object):
         self.write("Cashed " + value + " Euro")
 
     def payout_in_progress(self):
-        self.__screen.set_backlight("blink")
         self.write("Payout in Progress", "", "", "Please stand by")
 
     def rejected_note(self):
         #self.__screen.set_backlight("flash")
         self.write("Sorry, this note", "cannot be accepted" , "at this time.")
+
+    def thinking(self):
+        self.write("Thinking...", "", "", "Please stand by")
