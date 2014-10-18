@@ -79,7 +79,8 @@ class NoteValidator(object):
                 self._logger.warning("Read invalid note")
                 raise InvalidNoteError()
             elif (len(poll) > 1 and poll[0] == '0xf0'):
-                self._logger.warning(str(poll))
+                if poll != ['0xf0', '0xcc']:
+                    self._logger.warning(str(poll))
 
         with self._essp_lock:
             self._eSSP.disable()
