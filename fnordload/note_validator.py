@@ -1,5 +1,5 @@
 import time
-import eSSP.eSSP
+import eSSP
 import logging
 import threading
 import Queue
@@ -13,7 +13,7 @@ class TimeoutError(Exception):
 class NoteValidator(object):
     def __init__(self, device = '/dev/ttyACM0', inhibits_mask = [1, 1, 1, 0, 0, 0]):
         self._logger = logging.getLogger(__name__)
-        self._eSSP = eSSP.eSSP.eSSP(device)
+        self._eSSP = eSSP.eSSP(device)
         self._inhibits_mask = inhibits_mask
         self._inhibits = [0, 0, 0, 0, 0, 0]
         self._eSSP.sync()
