@@ -10,7 +10,7 @@ setup(
     author='',
     author_email='',
     url='https://github.com/muccc/fnordload',
-    packages=['fnordload', 'eSSP'],
+    packages=['fnordload'],
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Programming Language :: Python :: 2",
@@ -19,6 +19,6 @@ setup(
     ],
     keywords='upay',
     license='GPLv3+',
-    install_requires=['max7301', 'lcdproc', 'pyserial'],
+    install_requires=['max7301', 'lcdproc', 'pyserial', 'eSSP'],
     scripts=['scripts/fnordload']
 )
