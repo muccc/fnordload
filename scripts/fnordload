@@ -51,7 +51,7 @@ class Fnordload(object):
 
         while True:
             try:
-                self._ui.choose("Fnordload MAIN  Menu", main_menu)
+                self._ui.choose("Fnordload 0.1  Menu", main_menu, timeout = 3600)
             except fnordload.TimeoutError:
                 pass
 
