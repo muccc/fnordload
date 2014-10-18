@@ -3,7 +3,7 @@ class UI(object):
         self._lcd = lcd
         self._keypad = keypad
 
-    def _choose(self, message, options):
+    def _choose(self, message, options, timeout):
         visible_options = [option for option in options if option['visible']]
         visible_count = len(visible_options)
 
@@ -26,11 +26,11 @@ class UI(object):
         self._lcd.write(message, display_options[0], display_options[1], display_options[2])
 
         while True:
-            key = self._keypad.get_single_key()
+            key = self._keypad.get_single_key(timeout = timeout)
             if key in functions:
                 return functions[key]()
 
-    def choose(self, message, options):
+    def choose(self, message, options, timeout = 30):
         visible_options = [option for option in options if option['visible']]
         visible_count = len(visible_options)
 
@@ -66,7 +66,7 @@ class UI(object):
                 else:
                     show_options += invisible_options
 
-            key = self._choose(message, show_options)
+            key = self._choose(message, show_options, timeout)
 
             if key == '#':
                 offset += 2
