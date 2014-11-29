@@ -8,7 +8,7 @@ import logging
 import logging.config
 import logging.handlers
 import max7301
-import nupay
+import upay
 import sys
 
 from decimal import Decimal
@@ -245,7 +245,7 @@ class Fnordload(object):
         time.sleep(2)
 
     def _upay_show_balance(self):
-        token_reader = nupay.USBTokenReader()
+        token_reader = upay.USBTokenReader()
         t0 = time.time()
 
         self._lcd.write("Fnordload UPAY", "", "Please insert your", "USB drive")
@@ -257,7 +257,7 @@ class Fnordload(object):
                             found_medium_callback =
                                 lambda x: self._lcd.write("Fnordload UPAY", "", "Reading USB drive", ""))
                 break
-            except nupay.NoTokensAvailableError:
+            except upay.NoTokensAvailableError:
                 time.sleep(1)
 
         if not tokens:
@@ -266,7 +266,7 @@ class Fnordload(object):
             return
 
         self._lcd.write("Fnordload UPAY", "", "Validating tokens", "")
-        token_client = nupay.TokenClient()
+        token_client = upay.TokenClient()
         tokens = token_client.validate_tokens(tokens)
         value = sum([token.value for token in tokens])
 
@@ -276,8 +276,8 @@ class Fnordload(object):
     def _upay_get_tokens(self):
         self._logger.info("Entered get tokens menu")
         self._lcd.write("Fnordload UPAY", "", "Reading internal", "purse...")
-        local_tokens = nupay.read_tokens_from_file('local-purse', max_tokens = 100, max_size = 300 * 1024)
-        token_client = nupay.TokenClient()
+        local_tokens = upay.read_tokens_from_file('local-purse', max_tokens = 100, max_size = 300 * 1024)
+        token_client = upay.TokenClient()
 
         self._lcd.write("Fnordload UPAY", "", "Validating internal", "purse...")
         local_tokens = token_client.validate_tokens(local_tokens)
@@ -299,7 +299,7 @@ class Fnordload(object):
             self._lcd.write("Fnordload UPAY", "", "Reading USB drive", "")
             local.purse_path = path
 
-        token_reader = nupay.USBTokenReader()
+        token_reader = upay.USBTokenReader()
         t0 = time.time()
         self._lcd.write("Fnordload UPAY", "", "Please insert your", "USB drive")
 
@@ -307,7 +307,7 @@ class Fnordload(object):
         while time.time() < t0 + 30:
             try:
                 tokens = token_reader.read_tokens(found_medium_callback = found_usb_drive)
-            except nupay.NoTokensAvailableError:
+            except upay.NoTokensAvailableError:
                 time.sleep(1)
 
             if local.purse_path:

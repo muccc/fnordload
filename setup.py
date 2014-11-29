@@ -19,6 +19,6 @@ setup(
     ],
     keywords='upay',
     license='GPLv3+',
-    install_requires=['max7301', 'lcdproc', 'pyserial', 'eSSP'],
+    install_requires=['upay', 'max7301', 'lcdproc', 'pyserial', 'eSSP'],
     scripts=['scripts/fnordload']
 )
