@@ -81,6 +81,10 @@ class NoteValidator(object):
             elif (len(poll) > 1 and poll[0] == '0xf0'):
                 self._logger.warning(str(poll))
 
+            if len(poll) > 1:
+                 # The bill acceptor is not idle. Restart the timeout
+                 t0 = time.time()
+
         with self._essp_lock:
             self._eSSP.disable()
 
