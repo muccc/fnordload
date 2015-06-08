@@ -89,6 +89,7 @@ class NoteValidator(object):
                 t0 = time.time()
 
         self._logger.debug("read_note:88 with self._essp_lock")
+
         with self._essp_lock:
             self._eSSP.disable()
 
