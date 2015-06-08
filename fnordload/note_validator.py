@@ -57,6 +57,7 @@ class NoteValidator(object):
         self._logger.info("Read note")
         self._reset_poll()
         t0 = time.time()
+        self._logger.debug("read_note:60 with self._essp_lock")
         with self._essp_lock:
             self._eSSP.enable()
         while time.time() < t0 + timeout:
@@ -68,12 +69,14 @@ class NoteValidator(object):
                     self._eSSP.hold()
                     message_callback(self._channelvalues[poll[1][1] - 1])
             elif len(poll) > 1 and len(poll[1]) == 2 and poll[1][0] == '0xee':
+                self._logger.debug("read_note:73 with self._essp_lock")
                 with self._essp_lock:
                     self._eSSP.disable()
                 value = self._channelvalues[poll[1][1] - 1]
                 self._logger.info("Read note of value: %f" % value)
                 return value
             elif (len(poll) > 1 and poll[1] == '0xed'):
+                self._logger.debug("read_note:80 with self._essp_lock")
                 with self._essp_lock:
                     self._eSSP.disable()
                 self._logger.warning("Read invalid note")
@@ -81,6 +84,11 @@ class NoteValidator(object):
             elif (len(poll) > 1 and poll[0] == '0xf0'):
                 self._logger.warning(str(poll))
 
+            if len(poll) > 1:
+                # The bill acceptor is not idle. Restart the timeout
+                t0 = time.time()
+
+        self._logger.debug("read_note:88 with self._essp_lock")
         with self._essp_lock:
             self._eSSP.disable()
 
@@ -99,8 +107,10 @@ class NoteValidator(object):
 
     def _run(self):
         while self._keep_running:
+            self._logger.debug("_run:107 with self._essp_lock")
             with self._essp_lock:
                 poll = self._eSSP.poll()
+                self._logger.debug("poll = %s"%str(poll))
 
             while self._keep_running:
                 try:
