@@ -361,6 +361,7 @@ class Fnordload(object):
         except fnordload.InvalidNoteError:
             self._lcd.rejected_note()
             time.sleep(2)
+            self._give_change()
         except fnordload.TimeoutError:
             pass
 
